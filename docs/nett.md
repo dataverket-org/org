@@ -63,9 +63,12 @@ slipper hver enkelt leverandør kostnadene med å tilpasse seg til den selv.
 
 ## Tre typer medlemmer i samvirket
 
-Modellen fungerer bare hvis tre grupper finner verdi i å være med.
-Vedtektene må anerkjenne alle tre. Felles for dem alle er at de
-*bruker* plattformen — som er samvirkets økonomiske virksomhet.
+Erfaringer fra lignende fellesskap med åpen kildekode sier at modellen kan
+fungere bra dersom både leverandører, kunder og privatpersoner raskt kan finne
+verdi. Felles for alle er at de er *brukere* av plattformen — som er samvirkets
+økonomiske virksomhet.
+
+![Tre typer medlemmer: hva hver bidrar med og får ut av samvirket](samvirke/tre-medlemstyper.excalidraw.svg)
 
 ## Hvordan en kunde får tilgang i praksis
 
