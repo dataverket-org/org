@@ -46,27 +46,37 @@ Medlemmene velger fritt hvor mye de ønsker å samhandle.
 
 ## Forankring
 
-Plattformen er teknisk forankret og tilpasset rammeverk som er aktuelle i Norge:
+Plattformen er teknisk forankret og tilpasset rammeverk som er aktuelle i Norge.
 
-- **EU/EØS, Cloud Sovereignty Framework v1.2.1**. Åtte
-  suverenitetsmål (SOV-1 til SOV-8) brukt for å rangere skytjenester
-  i europeiske offentlige anskaffelser.
+### EU og EØS
+
+- **Cloud Sovereignty Framework v1.2.1**.
+  Åtte suverenitetsmål (SOV-1 til SOV-8) brukt for å rangere skytjenester i
+  europeiske offentlige anskaffelser.
   ([lokalt](forankring/Cloud-Sovereignty-Framework.pdf) | [ekstern link](https://commission.europa.eu/news-and-media/news/sovereign-cloud-framework-explained-2026-06-01_en))
-- **EU/EØS, Cyber Resilience Act (CRA)**. EU-forordning som setter felles krav
-  til cybersikkerhet for alle produkter med digitale elementer som omsettes i
-  EØS, inkludert programvare og tilkoblede enheter. Krav om sikkerhet-by-design,
-  CE-merking, SBOM, og vedlikehold gjennom hele produktets levetid (minimum fem
-  år). Rapporteringsplikt for sårbarheter fra 11. september 2026, full
-  ikrafttredelse 11. desember 2027.
-  ([lokalt](forankring/cra-nsr-konkurransefortrinn.pdf) | [ekstern link](https://www.nsr-org.no/aktuelt/nye-sikkerhetskrav-kan-gi-konkurransefortrinn-for-norsk-teknologi))
-- **Norge, NSMs grunnprinsipper for IKT-sikkerhet v2.1**. Det
-  nasjonale rammeverket for sikker drift av digitale tjenester i
-  Norge.
+- **Cyber Resilience Act, forordning (EU) 2024/2847**.
+  Felles krav til cybersikkerhet for alle produkter med digitale elementer som
+  omsettes i EØS, inkludert programvare og tilkoblede enheter. Krav om
+  sikkerhet-by-design, CE-merking, SBOM, og vedlikehold gjennom hele produktets
+  levetid (minimum fem år). Rapporteringsplikt for sårbarheter fra 11. september
+  2026, full ikrafttredelse 11. desember 2027.
+  ([lokalt](forankring/cra-eu-2024-2847.pdf) | [ekstern link](https://eur-lex.europa.eu/eli/reg/2024/2847/oj/eng))
+
+### Norge
+
+- **NSMs grunnprinsipper for IKT-sikkerhet v2.1**.
+  Det nasjonale rammeverket for sikker drift av digitale tjenester.
   ([lokalt](forankring/NSMs%20Grunnprinsipper%20for%20IKT-sikkerhet%20v2.1.pdf) | [ekstern link](https://nsm.no/regelverk-og-hjelp/rad-og-anbefalinger/ta-i-bruk-grunnprinsippene/))
-- **Norge, Nkoms datasenterveileder**. Veiledning til
-  sikkerhets- og beredskapsbestemmelsene for datasenteroperatører i ekomloven
-  og datasenterforskriften, som trådte i kraft 1. januar 2025.
+- **Nkoms datasenterveileder**.
+  Veiledning til sikkerhets- og beredskapsbestemmelsene for datasenteroperatører
+  i ekomloven og datasenterforskriften, som trådte i kraft 1. januar 2025.
   ([lokalt](forankring/datasenterveileder-nkom.pdf) | [ekstern link](https://nkom.no/datasenter/datasenterveileder))
+- **DFØ MPS Cloud Reference Architecture v1.3**.
+  Referansearkitektur for informasjonssikkerhet og personvern i skyavtaler for
+  offentlig sektor, fra DFØs Markedsplass for skytjenester. Mapper mot NIS2,
+  GDPR, ISO/IEC 27001:2022, NIST CSF v2.0, og skyspesifikke rammeverk (ISO
+  27017, CSA-CCM, FedRAMP, BSI C5:2020).
+  ([lokalt](forankring/dfo-mps-cloud-reference-architecture-v1.3.pdf) | [ekstern link](https://markedsplassen.anskaffelser.no/kunnskap-og-veiledning/informasjonssikkerhet-og-personvern/krav-til-informasjonssikkerhet-i-skyavtaler-referansearkitektur))
 
 Forankringen er ikke markedsføring. Den styrer arkitekturvalgene i
 plattformen, og er argumentasjonen overfor både leverandører og innkjøpere som *må* forholde seg til rammeverkene avtalemessig sett.
