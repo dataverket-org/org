@@ -168,7 +168,7 @@ Alt dette er valgfritt. Hver leverandør deltar i den graden de selv
 
 ## Spørsmål
 
-Organisasjons-skissen reiser noen vedtekts-spørsmål.
+Organisasjonsmodellen som omtalt her synliggjør noen vedtektsspørsmål som må avklares.
 
 ### Formålsangivelse
 
