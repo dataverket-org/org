@@ -15,7 +15,7 @@ Dataverkets første leveranse vil gjøre det mulig å lukke dette gapet:
 > vedlikeholdt i fellesskap gjennom Dataverket-samvirket.**
 
 Hver enkelt leverandør beholder full kommersiell uavhengighet og egne
-kundeforhold. Samvirket eier ikke kapasitet og selger ikke tjenester — det
+kundeforhold. Samvirket eier ikke kapasitet og selger ikke tjenester. Det
 utvikler plattformen og styrer tillitsrammeverket som lar medlemmene jobbe
 sammen der det er nyttig.
 
@@ -34,10 +34,10 @@ Dataverket bygger samme mønster, men for *infrastrukturtjenester* på kryss av 
 
 - Hver datasenter-leverandør eier og drifter sin egen infrastruktur,
   med sine egne kunder.
-- Samvirket eier *plattformen* og *tillitsrammeverket* — kode,
+- Samvirket eier *plattformen* og *tillitsrammeverket*: kode,
   standarder, sertifikater, tjenestekatalog-format, federasjons-API-er.
 - Leverandører som kjører plattformen kan, hvis de ønsker, føderere
-  identitet, ressurser og tjenester på tvers — slik at en kunde kan
+  identitet, ressurser og tjenester på tvers, slik at en kunde kan
   ha én identitet og se aggregert kapasitet hos flere norske
   leverandører gjennom samme portal.
 
@@ -48,15 +48,28 @@ Medlemmene velger fritt hvor mye de ønsker å samhandle.
 
 Plattformen er teknisk forankret og tilpasset rammeverk som er aktuelle i Norge:
 
-- **EU/EØS — Cloud Sovereignty Framework v1.2.1**. Åtte
+- **EU/EØS, Cloud Sovereignty Framework v1.2.1**. Åtte
   suverenitetsmål (SOV-1 til SOV-8) brukt for å rangere skytjenester
   i europeiske offentlige anskaffelser.
-- **Norge — NSMs grunnprinsipper for IKT-sikkerhet v2.1**. Det
+  ([lokalt](forankring/Cloud-Sovereignty-Framework.pdf) | [ekstern link](https://commission.europa.eu/news-and-media/news/sovereign-cloud-framework-explained-2026-06-01_en))
+- **EU/EØS, Cyber Resilience Act (CRA)**. EU-forordning som setter felles krav
+  til cybersikkerhet for alle produkter med digitale elementer som omsettes i
+  EØS, inkludert programvare og tilkoblede enheter. Krav om sikkerhet-by-design,
+  CE-merking, SBOM, og vedlikehold gjennom hele produktets levetid (minimum fem
+  år). Rapporteringsplikt for sårbarheter fra 11. september 2026, full
+  ikrafttredelse 11. desember 2027.
+  ([lokalt](forankring/cra-nsr-konkurransefortrinn.pdf) | [ekstern link](https://www.nsr-org.no/aktuelt/nye-sikkerhetskrav-kan-gi-konkurransefortrinn-for-norsk-teknologi))
+- **Norge, NSMs grunnprinsipper for IKT-sikkerhet v2.1**. Det
   nasjonale rammeverket for sikker drift av digitale tjenester i
   Norge.
+  ([lokalt](forankring/NSMs%20Grunnprinsipper%20for%20IKT-sikkerhet%20v2.1.pdf) | [ekstern link](https://nsm.no/regelverk-og-hjelp/rad-og-anbefalinger/ta-i-bruk-grunnprinsippene/))
+- **Norge, Nkoms datasenterveileder**. Veiledning til
+  sikkerhets- og beredskapsbestemmelsene for datasenteroperatører i ekomloven
+  og datasenterforskriften, som trådte i kraft 1. januar 2025.
+  ([lokalt](forankring/datasenterveileder-nkom.pdf) | [ekstern link](https://nkom.no/datasenter/datasenterveileder))
 
-Forankringen er ikke et markedsføringspålegg — den styrer arkitekturvalgene i
-plattformen, og er argumentasjonen overfor både leverandører og innkjøpere som *må* forholde seg til disse rammeverkene.
+Forankringen er ikke markedsføring. Den styrer arkitekturvalgene i
+plattformen, og er argumentasjonen overfor både leverandører og innkjøpere som *må* forholde seg til rammeverkene avtalemessig sett.
 
 Når forankringen og de tekniske løsningene er gjort én gang i fellesskap,
 slipper hver enkelt leverandør kostnadene med å tilpasse seg til den selv.
@@ -65,7 +78,7 @@ slipper hver enkelt leverandør kostnadene med å tilpasse seg til den selv.
 
 Erfaringer fra lignende fellesskap med åpen kildekode sier at modellen kan
 fungere bra dersom både leverandører, kunder og privatpersoner raskt kan finne
-verdi. Felles for alle er at de er *brukere* av plattformen — som er samvirkets
+verdi. Felles for alle er at de er *brukere* av plattformen, som er samvirkets
 økonomiske virksomhet.
 
 ![Tre typer medlemmer: hva hver bidrar med og får ut av samvirket](samvirke/tre-medlemstyper.excalidraw.svg)
@@ -99,13 +112,13 @@ leveransekjeden enkel. Den første flyten kan være:
    └───────────────────────────────────────┘
 ```
 
-Den første salgbare allokeringsenheten bør være en *maskin* — én dedikert fysisk
+Den første salgbare allokeringsenheten bør være en *maskin*: én dedikert fysisk
 server tilkoblet faste porter i et bestemt rack. Det gir kunden full fysisk
 isolasjon, og leverandøren en klar enhet for prising og kapasitetsstyring.
 
 I forhold til tradisjonelle colocation-modeller betyr denne modellen at kunden kan leie eller kjøpe servere, men ikke nettverk. Nettverk er en standardisert tjeneste som leveres av datasenter-leverandør helt til serverport. Dette muliggjør "bare metal as a service" og samme standardiserte løsning (BGP, IPv6, iPXE) for alle kunder.
 
-Selvhostende kunde-medlemmer kjører plattformen selv — samme bilde,
+Selvhostende kunde-medlemmer kjører plattformen selv. Det er samme bilde,
 men der leverandør og kunde er samme organisasjon.
 
 ## Hva federasjon kan bli senere
@@ -113,13 +126,13 @@ men der leverandør og kunde er samme organisasjon.
 Federasjons-rollen er åpen. Konkrete eksempler på hva samvirket *kan* utvikle
 hvis medlemmene ønsker det:
 
-- **Felles identitet** — en kunde-medlem logger inn med samme
+- **Felles identitet**: en kunde-medlem logger inn med samme
   identitet hos flere leverandører.
-- **Felles katalog** — en kunde ser tilgjengelig kapasitet på tvers av
+- **Felles katalog**: en kunde ser tilgjengelig kapasitet på tvers av
   alle leverandører som ønsker å eksponere den.
-- **Felles fakturering eller clearing** — leverandører kan tilby
+- **Felles fakturering eller clearing**: leverandører kan tilby
   hverandres tjenester gjennom egen kundeavtale.
-- **Felles audit-strøm** — kunder kan abonnere på sin egen
+- **Felles audit-strøm**: kunder kan abonnere på sin egen
   audit-historikk på tvers av leverandører.
 
 Alt dette er valgfritt. Hver leverandør deltar i den graden de selv
