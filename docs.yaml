@@ -1,0 +1,30 @@
+# Dataverket landing site, built independently from the docs build.
+# Each docs.yaml stands up its own served site (own baseURL, own
+# schema, own URL space); Caddy fronts each by host.
+#
+# `sources:` walks docs/ for `.md` files. `schema.path` resolves
+# relative to this file (repos/org/docs.schema.json), the relaxed
+# `page`-only contract for landing-style content.
+
+schema:
+  enabled: true
+  path: docs.schema.json
+
+sources: ["docs"]
+
+# Site identity. baseURL feeds Hugo's absolute links + sitemap;
+# BUILDER_BASE_URL env overrides it for local dev (e.g.
+# http://dataverket.test:8080/). Primary language `nb` drives
+# `<html lang>` and humanize/date formatting.
+site:
+  name: "Dataverket"
+  description: "Kunnskap, åpen kildekode, suverenitet."
+  baseURL: "https://dataverket.org/"
+  language: "nb"
+  license: "[CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0)"
+
+rules:
+  duplicate_basename: error
+  missing_frontmatter: error
+  invalid_frontmatter: error
+  schema_validation: error

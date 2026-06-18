@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://kode.dataverket.org/org/docs.schema.json",
+  "title": "Dataverket organizational page",
+  "description": "Relaxed schema for landing-style content from the org repo. Pages are finished site content. The `page` type carries title + description + project plus optional lang/tags/updated. No required body sections; site chrome (header / footer) is shared with the docs build via the bundled theme.",
+  "type": "object",
+  "required": ["title", "description", "type", "project"],
+  "properties": {
+    "title":       { "type": "string", "minLength": 1, "maxLength": 100 },
+    "description": { "type": "string", "minLength": 1, "maxLength": 300 },
+    "type":        { "type": "string", "enum": ["page", "event"] },
+    "project":     { "type": "string", "minLength": 1 },
+    "lang":        { "type": "string", "enum": ["en", "nb", "nn", "no"] },
+    "layout":      { "type": "string" },
+    "updated":     { "type": "string", "format": "date" },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$" },
+      "uniqueItems": true
+    }
+  },
+  "additionalProperties": true,
+  "x-required-sections": {}
+}
