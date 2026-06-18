@@ -1,4 +1,11 @@
-## Hvorfor Dataverket?
+---
+title: "Hvorfor Dataverket?"
+description: "Hvorfor norsk næringsliv og offentlig sektor trenger felles, suveren digital infrastruktur."
+type: page
+project: dataverket
+weight: 10
+icon: lightbulb
+---
 
 Norsk næringsliv og offentlig sektor er i stor grad avhengig av utenlandske leverandører for kritisk digital infrastruktur. Kompetansen til å bygge og drifte denne infrastrukturen her hjemme i Norge finnes, men den er spredt og ofte vanskelig tilgjengelig.
 

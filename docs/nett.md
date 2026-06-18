@@ -1,4 +1,11 @@
-# Dataverket Nett og Maskin
+---
+title: "Dataverket Nett og Maskin"
+description: "Suveren bare metal og KI-cluster for norske datasenter-leverandører. Første leveranse i Dataverket-samvirket."
+type: page
+project: dataverket
+weight: 20
+icon: globe
+---
 
 ## Bakgrunn
 
@@ -172,7 +179,7 @@ Organisasjonsmodellen som omtalt her synliggjør noen vedtektsspørsmål som må
 
 ### Formålsangivelse
 
-Samvirkets virksomhet er å *utvikle og vedlikeholde programvareplattform og kunnskap til felles nytte for medlemmene*. Medlemmene samhandler med samvirket ved å *bruke* denne plattformen (avtakere). Holder denne formuleringen mot samvirkelovens krav?
+Samvirkets virksomhet er å *utvikle og vedlikeholde programvareplattform og kunnskap til felles nytte for medlemmene* (avtakere). Medlemmene samhandler med samvirket ved å *bruke* denne plattformen. Holder denne formuleringen mot samvirkelovens krav?
 
 ### Differensierte medlemskategorier
 
