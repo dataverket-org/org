@@ -73,7 +73,7 @@ Plattformen er teknisk forankret og tilpasset rammeverk som er aktuelle i Norge.
 
 - **NSMs grunnprinsipper for IKT-sikkerhet v2.1**.
   Det nasjonale rammeverket for sikker drift av digitale tjenester.
-  ([lokalt](forankring/NSMs%20Grunnprinsipper%20for%20IKT-sikkerhet%20v2.1.pdf) | [ekstern link](https://nsm.no/regelverk-og-hjelp/rad-og-anbefalinger/ta-i-bruk-grunnprinsippene/))
+  ([lokalt](forankring/nsm-grunnprinsipper-ikt-sikkerhet-v2.1.pdf) | [ekstern link](https://nsm.no/regelverk-og-hjelp/rad-og-anbefalinger/ta-i-bruk-grunnprinsippene/))
 - **Nkoms datasenterveileder**.
   Veiledning til sikkerhets- og beredskapsbestemmelsene for datasenteroperatører
   i ekomloven og datasenterforskriften, som trådte i kraft 1. januar 2025.
