@@ -2,7 +2,7 @@
 
 | Fil | Opphav | Lisens |
 |---|---|---|
-| dataverket-logo.svg, dataverket-logo.png | Dataverkets logo, svart på gjennomsiktig bakgrunn. Kopiert fra logo-light.svg i builder-hugo-repoet (site/assets/images). PNG-en er rendret fra SVG-en, 1200 piksler høy. | Dataverkets egen. |
+| dataverket-logo.svg | Dataverkets logo, svart på gjennomsiktig bakgrunn. Kopiert fra logo-light.svg i builder-hugo-repoet (site/assets/images). | Dataverkets egen. |
 | fyr.mp4 (ikke i repoet) | Video fra reportasjen «Ett døgn på Lindesnes fyr». Foto og video: Richard Nodeland, Stavanger Aftenblad. Artikkel: <https://www.aftenbladet.no/magasin/i/dOBgbA/ett-doegn-paa-lindesnes-fyr>. Direkte fil: <https://dd-polaris.akamaized.net/fvn/vod/2020/02/5e381d67e664a1088cde6ffa/ps_1920_1080_5942.mp4>, 1920 x 1080, 37 sekunder, uten lyd, 27 MB. Holdes utenfor git på grunn av størrelsen. Last ned til bilder/fyr.mp4 før foredraget. | Opphavsrett Stavanger Aftenblad og Richard Nodeland. Brukt i foredraget med kildehenvisning.
 | kubecon-2025-offentlig-paas.png | Skjermbilde fra keynoten «Adventures of Building a Platform as a Service for the Government» med Hans Kristian Flaatten og Audun Fauchald Strand, KubeCon + CloudNativeCon Europe 2025, London. Lysbildet viser Offentlig PaaS med 81 medlemsorganisasjoner. Video hos CNCF: <https://www.youtube.com/watch?v=DWq8UWmcRQg>. Beskåret til videorammen; YouTube-teksting er med i bildet. | Opphavsrett CNCF og foredragsholderne. Brukt i foredraget med kildehenvisning, ikke publisert på nettstedet. |
 | plakat-blug-2026-09.png | Plakat for arrangementet, laget av Bergen Linux User Group. Hentet 2026-09-22 fra <https://www.blug.linux.no/events/2026-09-dataverket/>. | BLUG sin. Brukt på arrangementssiden med kildehenvisning. |
