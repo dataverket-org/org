@@ -58,7 +58,7 @@ Samvirket eier ikke kapasitet og selger ikke tjenester. Det utvikler plattformen
 {{< /columns >}}
 
 {{< callout heading="Vil du forstå hvorfor?" cta_text="Hvorfor Dataverket? →" cta_link="/hvorfor/" >}}
-En kort tekst om bakgrunnen for Dataverket — hva som er problemet vi tar tak i, og hvilken posisjon vi har.
+En kort tekst om bakgrunnen for Dataverket, hva som er problemet vi tar tak i, og hvilken posisjon vi har.
 {{< /callout >}}
 
 

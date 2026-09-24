@@ -5,7 +5,7 @@ type: event
 project: dataverket
 date: 2025-10-28
 time: "16:40–17:00"
-location: "Cloud Native Day Bergen 2025 · Lillesalen, 2. etasje"
+location: "Cloud Native Day Bergen 2025, Lillesalen i 2. etasje"
 event: https://2025.cloudnativebergen.dev/
 speaker: https://2025.cloudnativebergen.dev/speaker/jan-ivar-beddari
 recording: https://www.youtube.com/watch?v=cGCf6mLPxpM
@@ -27,7 +27,7 @@ tags: [foredrag, kontrollplan, suverenitet, cloud-native-bergen]
 | **Format** | Presentasjon, 20 minutter |
 | **Nivå** | Middels |
 | **Språk** | Norsk |
-| **Spor** | Cloud Infrastructure & Operations · Platform Engineering & Developer Experience |
+| **Spor** | Cloud Infrastructure & Operations, Platform Engineering & Developer Experience |
 | **Foredragsholder** | [Jan Ivar Beddari](https://2025.cloudnativebergen.dev/speaker/jan-ivar-beddari), Dataverket |
 
 ## Sammendrag

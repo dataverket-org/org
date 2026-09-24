@@ -5,7 +5,7 @@ type: event
 project: dataverket
 date: 2026-09-24
 time: "19:00–21:00"
-location: "BLUG · Ambita, Krinkelkroken 1, Bergen"
+location: "BLUG hos Ambita, Krinkelkroken 1, Bergen"
 event: https://www.blug.linux.no/events/2026-09-dataverket/
 lang: nb
 tags: [foredrag, blug, kontrollplan, samvirke, suverenitet]

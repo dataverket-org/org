@@ -49,6 +49,10 @@ under dem: _infrastruktur som noen andre leverer_.
 
 ---
 
+https://detsombetyrnoe.no/
+
+---
+
 ## Tre spørsmål om norsk sky
 
 1. **Hvilke lover og myndighetskrav gjelder for sky og datasenter?**
@@ -153,7 +157,7 @@ DFØ sitt rammeverk for skybaserte infrastruktur- og plattformtjenester, kapitte
 
 ![w:220 Patrik Fältström](content/patrik-faltstrom-netnod.jpg)
 
-**"Compliance is not survival"**
+**["Compliance is not survival"](content/nonog-2026-09-faltstrom.pdf)**
 
 Patrik Fältström, Netnod, på NONOG i Oslo 9. september 2026.
 
@@ -293,7 +297,7 @@ Sentral blir implementert ved hjelp av meldingssysemet https://nats.io
 
 ---
 
-## Kjernearkitektur: Flyt
+## Kjernearkitektur: Flyten
 
 Sentral har API mot Identitet for å håndtere roller og tilganger for mennesker og maskiner.
 
@@ -301,7 +305,7 @@ Først kobler en klient (principal) til Identitet og får et token som kan benyt
 
 Alle meldinger er standardisert som CloudEvents. Kommandoer, hendelser, spørringer og svar. Alle ressurser har en global ID som kan uttrykkes i reglene.
 
-Hva en melding har lov til å gjøre blir derfor bestemt av konvolutten den ligger i, ikke av selve innholdet i meldingen.
+Hva en melding har lov til å gjøre blir derfor bestemt av "konvolutten" den ligger i, ikke av selve innholdet i meldingen.
 
 ---
 
@@ -368,7 +372,7 @@ https://docs.digdir.no/docs/Maskinporten/maskinporten_protocol_token.html
 ---
 
 
-## Målbilde: Kjernearkitektur
+## Litt mer oversiktlig?
 
 ```mermaid
 %%{init: {"fontFamily": "Helvetica, Arial, sans-serif", "flowchart": {"htmlLabels": true, "padding": 12}}}%%
@@ -406,7 +410,7 @@ flowchart TB
 
 ---
 
-## Målbilde: Mulige tjenester per region
+## Mulige tjenester i en region (dine tjenester?)
 
 ```mermaid
 %%{init: {"fontFamily": "Helvetica, Arial, sans-serif", "flowchart": {"htmlLabels": true, "padding": 12}}}%%
@@ -438,68 +442,66 @@ flowchart TB
 
 ---
 
-## Målbilde: Nett og Maskin
+## Under planlegging: Nett og Maskin
 
-Suveren bare metal og KI-cluster.
+Suveren bare metal og KI-cluster med selvbetjenings-API.
 
+Prøver å selge dette nå i høst, men så langt vil ingen kjøpe 😅
 
+(sidequest: https://seldo.com/posts/we-are-all-product-engineers-now/ )
 
 ---
 
-## Kjør Dataverket hjemme
+## Kjør Dataverket hjemme (kommer snart!!!)
 
 - **Laptop**: Dataverket alt-i-ett.
 - **Hjemmelab**: Fire små servere og en svitsj.
 - **Datasenter**: Skalerbart referansedesign, 1-50 rack, 1-N regioner.
 
-Samme kode. Alle kan være med på å gjøre dette mulig!
+Samme komponenter, kode og metodikker for hver skala.
 
 ---
 
-## Status
+## Dataverket trenger hjelp!
 
-Sonderingsfase. Vedtekter under arbeid. Første medlemmer i dialog.
+Vi trenger hjelp, så om du er engasjert for teknisk suverenitet, bli med!
 
-Nettstedet dataverket.org og koden på git.dataverket.org er oppe. Resten setter vi opp nå, og det er her du kan ta en bit.
-
-**Nå kan du faktisk påvirke retningen.**
+**Du kan påvirke retningen og resultatet!**
 
 ---
 
 ## To retninger: kunnskap og kode
 
-**Kunnskap** — samle det vi kan, forklare det, forankre det
+**Kunnskap**: samle det vi kan, forklare det, forankre det
 
 - nettstedet dataverket.org: tekst, struktur, korrektur, flere øyne
 - **blogg**: skriv et innlegg, og start diskusjonen den veien
 - erfaring fra anskaffelser, drift og compliance
 - vedtekter: samvirkelov, medlemsbalanse, federasjonsrollen
 
-**Kode** — bygge det, og drifte det selv
+**Kode**: bygge, drifte selv
 
 - **Zulip** for diskusjon og organisering: den skal opp, og noen må sette den opp
 - NATS, Zitadel, iPXE, BGP, Talos
-- hjemmelab: kjør plattformen og fortell oss hva som brekker
+- hjemmelab: kjør plattform og kode fortell oss hva som brekker
 
-Du trenger ikke velge én av dem.
+Du trenger ikke begrense deg til bare en retning, hehe.
 
 ---
 
-## Tre kodeoppgaver du kan ta i kveld
+## Tre kodeoppgaver
 
-**FRR som egen IncusOS-app** · middels
+**frr som egen IncusOS-app**, middels, [discuss.linuxcontainers.org/t/27244](https://discuss.linuxcontainers.org/t/27244)
 
-Innebygd go-bgp tar imot ruter, men installerer ingen av dem. Ingen IPv4-default, ingen BFD, ingen ECMP. Stéphane Graber foreslår en egen app som peerer med go-bgp over localhost og eier rutingen på verten.
+IncusOS go-bgp kan ta imot ruter men installerer ingen av dem, så vi får ikke BGP-til-host slik vi ønsker. Stéphane Graber foreslår en egen app som peerer med go-bgp over localhost og eier rutingen på verten. Ja takk!
 
-**security.acls på routed NIC-er** · trolig lett
+**security.acls på routed NIC**, trolig lett, [discuss.linuxcontainers.org/t/27246](https://discuss.linuxcontainers.org/t/27246)
 
-Virker bare på bridged og OVN i dag, routed gjør bare RP-filter. Firewall-grensesnittet mangler et `InstanceSetupRoutedFilter`, og ACL-til-nft-koden kan trolig gjenbrukes som den er.
+Virker på bridged og OVN nic i dag, men routed har bare RP-filter. Firewall-grensesnittet mangler et `InstanceSetupRoutedFilter`, og ACL-til-nft-koden kan trolig gjenbrukes som den er.
 
-**Én Forgejo-runner per organisasjon** · åpen
+**Én Forgejo-runner per organisasjon for git.dataverket.org**, åpen
 
-Studere, dokumentere og bygge: hver organisasjon sin egen runner, isolert med Talos og Kata/QEMU. Neste steg for git.dataverket.org.
-
-<small>Tråder på discuss.linuxcontainers.org: «BGP to the host on IncusOS with unnumbered» og «Network ACLs on routed NICs», den siste uten svar fra vedlikeholderne ennå.</small>
+Studere, dokumentere og bygge: hvordan bør vi gi hver organisasjon en "sikker" runner, isolert med Talos og Kata/QEMU?
 
 ---
 
