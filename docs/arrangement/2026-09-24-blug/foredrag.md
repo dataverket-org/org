@@ -19,6 +19,8 @@ BLUG | 24. september 2026 | Jan Ivar Beddari
 
 ---
 
+![bg right:36% 55%](content/dataverket-logo.svg)
+
 ## Hvorfor står jeg her
 
 - UH-sky / NREC: det første norske akademiske skysamarbeidet
@@ -44,14 +46,6 @@ under dem: _infrastruktur som noen andre leverer_.
 ---
 
 ![Azure, AWS og Google Cloud](content/hyperscalere.png)
-
----
-
-## Dataverket
-
-![Dataverket](content/dataverket-logo.svg)
-
-Kunnskap, åpen kildekode, suverenitet
 
 ---
 
@@ -203,10 +197,10 @@ Kommuner som kjøper Google Classroom svarer selv for at det er trygt, men de be
 
 ## Et "FEIDE for infrastruktur"?
 
-- FEIDE: institusjonene eier identitetene, staten drifter tillitsrammeverket
-- Dataverket: operatørene har kunder, et _samvirke_ 
+- FEIDE: institusjonene eier identitetene, staten driver rammeverket
+- Dataverket: operatørene har kunder og tjenester, et _samvirke_ driver rammeverket
 
-I et slikt oppsett ville ikke _federasjon_ av tjenester være et krav. Men, det kan være en risikoreduksjon.
+I et slikt oppsett ville ikke federasjon av _tjenester_ være et krav, men det kunne være en mulig risikoreduksjon.
 
 ---
 

@@ -1,10 +1,11 @@
 # Bygger foredraget uten VS Code: mermaid-cli (mmdc) rendrer Mermaid-blokkene i
-# foredrag.md til content/diagram-N.svg og skriver byggekopien content/diagram.md med
+# foredrag.md til content/foredrag-N.svg og skriver byggekopien content/foredrag.md med
 # blokkene byttet mot bildene. Marp bygger content/foredrag.html og content/foredrag.pdf fra kopien.
 # Krever: brew install go-task marp-cli mermaid-cli, og Brave eller Chrome.
 #   task            bygg content/foredrag.html
 #   task --watch    bygg på nytt hver gang foredrag.md endres
 #   task pdf        bygg content/foredrag.pdf
+#   task dev        live reload: åpne content/live.html i nettleseren, den oppdaterer seg selv ved lagring
 version: '3'
 
 vars:
@@ -22,16 +23,36 @@ tasks:
     desc: Bygg content/foredrag.html
     sources: [foredrag.md]
     generates: [content/foredrag.html]
-    env:
-      PUPPETEER_EXECUTABLE_PATH: '{{.BROWSER_BIN}}'
     cmds:
-      - mmdc -q -i foredrag.md -o content/diagram.md -a content -e svg
-      # Kopien og alt den peker på ligger i content/, så mappa strykes fra bildestiene i manuset.
-      - sed 's#](content/#](#' content/diagram.md > content/diagram.tmp && mv content/diagram.tmp content/diagram.md
-      - marp --no-stdin --html content/diagram.md -o content/foredrag.html
+      - task: copy
+      - marp --no-stdin --html content/foredrag.md -o content/foredrag.html
 
   pdf:
     desc: Bygg content/foredrag.pdf
     cmds:
       - task: default
-      - marp --no-stdin --html --allow-local-files --browser-path "{{.BROWSER_BIN}}" content/diagram.md -o content/foredrag.pdf
+      - marp --no-stdin --html --allow-local-files --browser-path "{{.BROWSER_BIN}}" content/foredrag.md -o content/foredrag.pdf
+
+  copy:
+    desc: Render diagrammene og skriv byggekopien content/foredrag.md
+    sources: [foredrag.md]
+    env:
+      PUPPETEER_EXECUTABLE_PATH: '{{.BROWSER_BIN}}'
+    cmds:
+      - mmdc -q -i foredrag.md -o content/foredrag.md -a content -e svg
+      # Kopien og alt den peker på ligger i content/, så mappa strykes fra bildestiene i manuset.
+      - sed 's#](content/#](#' content/foredrag.md > content/foredrag.tmp && mv content/foredrag.tmp content/foredrag.md
+
+  dev:
+    desc: Hold kopien oppdatert og la Marp rendre content/live.html med live reload i nettleseren
+    deps: [dev:copy, dev:marp]
+
+  dev:copy:
+    internal: true
+    cmds:
+      - task --watch copy
+
+  dev:marp:
+    internal: true
+    cmds:
+      - marp -w --html content/foredrag.md -o content/live.html
