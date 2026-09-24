@@ -448,7 +448,7 @@ Suveren bare metal og KI-cluster med selvbetjenings-API.
 
 Prøver å selge dette nå i høst, men så langt vil ingen kjøpe 😅
 
-(sidequest: https://seldo.com/posts/we-are-all-product-engineers-now/ )
+(sidequest: [«We are all product engineers now»](https://seldo.com/posts/we-are-all-product-engineers-now/), Laurie Voss, 14. september 2026)
 
 ---
 
@@ -507,15 +507,8 @@ Studere, dokumentere og bygge: hvordan bør vi gi hver organisasjon en "sikker" 
 
 ![bg right:34% 72%](content/signal-qr.png)
 
-## Begynn i kveld
+## Bli med nå i kveld!
 
 **Skann koden og bli med i Signal-gruppa.** Det er der koordineringen skjer akkurat nå.
 
-Ellers, én av disse:
-
-1. Se koden: git.dataverket.org
-2. Ta kontakt: medlem@dataverket.org
-3. Bli personlig medlem
-4. Tips en operatør eller kunde
-
-Én ting holder.
+Eller om du heller vil det, send en epost til medlem@dataverket.org og fortell hva du kan!
