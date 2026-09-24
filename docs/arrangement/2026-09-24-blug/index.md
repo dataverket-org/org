@@ -11,7 +11,7 @@ lang: nb
 tags: [foredrag, blug, kontrollplan, samvirke, suverenitet]
 ---
 
-![Plakat for foredraget hos BLUG](bilder/plakat-blug-2026-09.png)
+![Plakat for foredraget hos BLUG](content/plakat-blug-2026-09.png)
 
 ## Om foredraget
 
@@ -65,4 +65,4 @@ et telefonnummer du kan ringe om du kommer senere.
 ## Lenker
 
 - [Arrangementet hos BLUG](https://www.blug.linux.no/events/2026-09-dataverket/)
-- [Plakaten](bilder/plakat-blug-2026-09.png) er laget av BLUG og hentet fra samme side
+- [Plakaten](content/plakat-blug-2026-09.png) er laget av BLUG og hentet fra samme side
