@@ -52,7 +52,9 @@ tasks:
     env:
       PUPPETEER_EXECUTABLE_PATH: '{{.BROWSER_BIN}}'
     cmds:
-      - mmdc -q -i foredrag.md -o content/foredrag.md -a content -e svg
+      # mermaid.json setter handDrawnSeed. Uten den jitrer rough.js nodeformene litt for
+      # hver kjøring, og SVG-ene blir endret i git selv om diagrammet er likt.
+      - mmdc -q -c mermaid.json -i foredrag.md -o content/foredrag.md -a content -e svg
       # Kopien og alt den peker på ligger i content/, så mappa strykes fra bildestiene i manuset.
       - sed 's#](content/#](#' content/foredrag.md > content/foredrag.tmp && mv content/foredrag.tmp content/foredrag.md
 

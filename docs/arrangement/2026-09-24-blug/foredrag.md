@@ -446,7 +446,7 @@ Suveren bare metal og KI-cluster.
 
 ---
 
-## Målbilde: Kjør Dataverket hjemme
+## Kjør Dataverket hjemme
 
 - **Laptop**: Dataverket alt-i-ett.
 - **Hjemmelab**: Fire små servere og en svitsj.
@@ -460,21 +460,56 @@ Samme kode. Alle kan være med på å gjøre dette mulig!
 
 Sonderingsfase. Vedtekter under arbeid. Første medlemmer i dialog.
 
-Koden ligger på git.dataverket.org. Det er den eneste tjenesten som er oppe i dag.
+Nettstedet dataverket.org og koden på git.dataverket.org er oppe. Resten setter vi opp nå, og det er her du kan ta en bit.
 
 **Nå kan du faktisk påvirke retningen.**
 
 ---
 
-## Vi trenger hjelp til
+## To retninger: kunnskap og kode
 
-- **Vedtekter**: samvirkelov, medlemsbalanse, federasjonsrollen
-- **Kode**: NATS, Zitadel, iPXE, BGP, Talos
-- **Drift**: hjemmelab, anskaffelser, compliance
+**Kunnskap** — samle det vi kan, forklare det, forankre det
+
+- nettstedet dataverket.org: tekst, struktur, korrektur, flere øyne
+- **blogg**: skriv et innlegg, og start diskusjonen den veien
+- erfaring fra anskaffelser, drift og compliance
+- vedtekter: samvirkelov, medlemsbalanse, federasjonsrollen
+
+**Kode** — bygge det, og drifte det selv
+
+- **Zulip** for diskusjon og organisering: den skal opp, og noen må sette den opp
+- NATS, Zitadel, iPXE, BGP, Talos
+- hjemmelab: kjør plattformen og fortell oss hva som brekker
+
+Du trenger ikke velge én av dem.
 
 ---
 
-## I kveld
+## Tre kodeoppgaver du kan ta i kveld
+
+**FRR som egen IncusOS-app** · middels
+
+Innebygd go-bgp tar imot ruter, men installerer ingen av dem. Ingen IPv4-default, ingen BFD, ingen ECMP. Stéphane Graber foreslår en egen app som peerer med go-bgp over localhost og eier rutingen på verten.
+
+**security.acls på routed NIC-er** · trolig lett
+
+Virker bare på bridged og OVN i dag, routed gjør bare RP-filter. Firewall-grensesnittet mangler et `InstanceSetupRoutedFilter`, og ACL-til-nft-koden kan trolig gjenbrukes som den er.
+
+**Én Forgejo-runner per organisasjon** · åpen
+
+Studere, dokumentere og bygge: hver organisasjon sin egen runner, isolert med Talos og Kata/QEMU. Neste steg for git.dataverket.org.
+
+<small>Tråder på discuss.linuxcontainers.org: «BGP to the host on IncusOS with unnumbered» og «Network ACLs on routed NICs», den siste uten svar fra vedlikeholderne ennå.</small>
+
+---
+
+![bg right:34% 72%](content/signal-qr.png)
+
+## Begynn i kveld
+
+**Skann koden og bli med i Signal-gruppa.** Det er der koordineringen skjer akkurat nå.
+
+Ellers, én av disse:
 
 1. Se koden: git.dataverket.org
 2. Ta kontakt: medlem@dataverket.org
