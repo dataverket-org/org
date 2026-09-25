@@ -56,7 +56,9 @@ tasks:
       # hver kjøring, og SVG-ene blir endret i git selv om diagrammet er likt.
       - mmdc -q -c mermaid.json -i foredrag.md -o content/foredrag.md -a content -e svg
       # Kopien og alt den peker på ligger i content/, så mappa strykes fra bildestiene i manuset.
-      - sed 's#](content/#](#' content/foredrag.md > content/foredrag.tmp && mv content/foredrag.tmp content/foredrag.md
+      # Mønsteret krever ![...] foran, ellers strykes content/ også fra vanlige lenker, og da
+      # bakte Marp inn file:///Users/... i pdf-en. g-en tar med bilde nummer to på samme linje.
+      - sed 's#!\(\[[^]]*\]\)(content/#!\1(#g' content/foredrag.md > content/foredrag.tmp && mv content/foredrag.tmp content/foredrag.md
 
   dev:
     desc: Hold kopien oppdatert og la Marp rendre content/live.html med live reload i nettleseren
