@@ -157,7 +157,7 @@ DFØ sitt rammeverk for skybaserte infrastruktur- og plattformtjenester, kapitte
 
 ![w:220 Patrik Fältström](content/patrik-faltstrom-netnod.jpg)
 
-**["Compliance is not survival"](content/nonog-2026-09-faltstrom.pdf)**
+**["Compliance is not survival"](https://git.dataverket.org/dataverket/org/src/commit/9a914c62bd2d4eea07f6b0668f33c2a97c380a3b/docs/arrangement/2026-09-24-blug/content/nonog-2026-09-faltstrom.pdf)**
 
 Patrik Fältström, Netnod, på NONOG i Oslo 9. september 2026.
 
