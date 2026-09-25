@@ -1,0 +1,147 @@
+# Generates Dataverket's Designsystemet theme, and fetches what we serve ourselves.
+#
+# Node is a build tool here, not a runtime dependency. Nobody should have to
+# install npm to work on Dataverket, so the CLI runs in a container and the
+# result is committed. Our services are Go + htmx and never see a node_modules.
+#
+#   task            tokens + vendor
+#   task tokens     regenerate design-tokens-build/dataverket.css (needs podman/docker)
+#   task vendor     fetch Designsystemet, Inter, JetBrains Mono and htmx into vendor/
+#   task check      fail if the committed theme is out of sync with the config
+#   task preview    serve preview.html and open it
+#   task clean      remove everything fetched or regenerated
+#   task clean:all  the same, plus the committed theme
+#
+# `task tokens` only runs when designsystemet.config.json changes, or when
+# DS_VERSION is bumped. Its output is a build artifact: never edit it by hand.
+version: '3'
+
+vars:
+  # Everything is pinned here. Bump in one place and theme, CSS and JS follow.
+  DS_VERSION: '1.23.0'
+  HTMX_VERSION: '2.0.4'
+  FONTSOURCE_VERSION: '5.3.0'
+  NODE_IMAGE: 'docker.io/library/node:22-alpine'
+
+  # podman first, docker if podman is missing. CONTAINER_BIN in the env wins.
+  CONTAINER_BIN:
+    sh: |
+      for c in "$CONTAINER_BIN" podman docker; do
+        [ -n "$c" ] && command -v "$c" >/dev/null 2>&1 && { echo "$c"; exit 0; }
+      done
+      echo 'neither podman nor docker found, set CONTAINER_BIN' >&2; exit 1
+
+tasks:
+  default:
+    desc: Generate the theme and fetch the dependencies
+    cmds:
+      - task: tokens
+      - task: vendor
+
+  tokens:
+    desc: Regenerate design-tokens-build/dataverket.css from designsystemet.config.json
+    sources: [designsystemet.config.json]
+    generates: [design-tokens-build/dataverket.css]
+    cmds:
+      - task: cli
+        vars: {ARGS: 'tokens create --clean'}
+      - task: cli
+        vars: {ARGS: 'tokens build --clean'}
+
+  cli:
+    internal: true
+    # --user keeps the generated files owned by you rather than root. npm wants
+    # a writable HOME, so it is pointed at /tmp. :z is for SELinux hosts and is
+    # harmless elsewhere.
+    cmd: >-
+      {{.CONTAINER_BIN}} run --rm
+      -v "{{.TASKFILE_DIR}}:/work:z"
+      -w /work
+      --user "$(id -u):$(id -g)"
+      -e HOME=/tmp
+      -e npm_config_cache=/tmp/.npm
+      {{.NODE_IMAGE}}
+      npx --yes @digdir/designsystemet@{{.DS_VERSION}} {{.ARGS}}
+
+  check:
+    desc: Fail if the committed theme is out of sync with the config
+    cmds:
+      - cp design-tokens-build/dataverket.css /tmp/dataverket-check.css
+      - task: tokens
+      - cmd: diff -q /tmp/dataverket-check.css design-tokens-build/dataverket.css
+        msg: theme is out of sync with designsystemet.config.json, run `task tokens` and commit the result
+
+  vendor:
+    desc: Fetch Designsystemet, the fonts and htmx into vendor/
+    status:
+      - test -f vendor/designsystemet.css
+      - test -f vendor/designsystemet-web.js
+      - test -f vendor/htmx.min.js
+      - test -f vendor/fonts/inter.css
+      - test -f vendor/fonts/jetbrains-mono.css
+    cmds:
+      - mkdir -p vendor/fonts/files
+      # Straight from the npm registry with curl and tar. No npm, no node_modules.
+      - >-
+        curl -sSfL "https://registry.npmjs.org/@digdir/designsystemet-css/-/designsystemet-css-{{.DS_VERSION}}.tgz"
+        | tar -xzO package/dist/src/index.css > vendor/designsystemet.css
+      # jsDelivr's +esm build inlines @floating-ui and @u-elements, so this is a
+      # single file with no bundler. Fetched once and committed by the consumer.
+      - >-
+        curl -sSfL "https://cdn.jsdelivr.net/npm/@digdir/designsystemet-web@{{.DS_VERSION}}/+esm"
+        -o vendor/designsystemet-web.js
+      - >-
+        curl -sSfL "https://registry.npmjs.org/htmx.org/-/htmx.org-{{.HTMX_VERSION}}.tgz"
+        | tar -xzO package/dist/htmx.min.js > vendor/htmx.min.js
+      - task: font
+        vars: {PKG: inter, OUT: inter, WEIGHTS: '400 500 600'}
+      - task: font
+        vars: {PKG: jetbrains-mono, OUT: jetbrains-mono, WEIGHTS: '400 500'}
+
+  font:
+    internal: true
+    # Latin subset only. Designsystemet asks for weights 400, 500 and 600 for
+    # Inter; JetBrains Mono only needs 400 and 500 for identifiers. The awk
+    # block keeps the latin @font-face rule (the one whose unicode-range starts
+    # at U+0000) and drops the other subsets; the sed strips the .woff fallback
+    # we do not ship. Fonts are served from us, not from altinncdn.no or Google.
+    cmds:
+      - |
+        set -e
+        tgz=$(mktemp)
+        curl -sSfL "https://registry.npmjs.org/@fontsource/{{.PKG}}/-/{{.PKG}}-{{.FONTSOURCE_VERSION}}.tgz" -o "$tgz"
+        : > vendor/fonts/{{.OUT}}.css
+        for w in {{.WEIGHTS}}; do
+          tar -xzO -f "$tgz" "package/files/{{.PKG}}-latin-$w-normal.woff2" \
+            > "vendor/fonts/files/{{.PKG}}-latin-$w-normal.woff2"
+          tar -xzO -f "$tgz" "package/$w.css" \
+            | awk '/@font-face/{keep=0; buf=""} {buf=buf $0 "\n"} /unicode-range/{if ($0 ~ /U\+0000/) keep=1} /^}/{if (keep) printf "%s", buf; keep=0; buf=""}' \
+            | sed "s#, url([^)]*\.woff) format('woff')##" \
+            >> vendor/fonts/{{.OUT}}.css
+        done
+        rm -f "$tgz"
+
+  preview:
+    desc: Serve preview.html and open it in the browser
+    deps: [vendor]
+    # The files load as modules, so file:// will not do. Plain server on 8123.
+    cmds:
+      - '{{if eq OS "darwin"}}open{{else}}xdg-open{{end}} http://localhost:8123/preview.html &'
+      - python3 -m http.server 8123 --directory "{{.TASKFILE_DIR}}"
+
+  clean:
+    desc: Remove everything that can be fetched or regenerated
+    # Only touches what is in .gitignore: the intermediate tokens, the vendored
+    # third-party files and go-task's checksum cache. design-tokens-build/ is
+    # committed and survives, so a consumer who only wants the theme can still
+    # build after a clean. Use `task clean:all` to drop that too.
+    cmds:
+      - rm -rf design-tokens vendor .task
+
+  clean:all:
+    desc: Clean, and drop the committed theme as well (back to sources only)
+    # After this, the directory holds nothing but sources: the config, the
+    # patch, the assets and the templates. `task` puts it all back.
+    cmds:
+      - task: clean
+      - rm -rf design-tokens-build

@@ -1,0 +1,68 @@
+{{/*
+  Base layout for a Dataverket service.
+
+  Go html/template. Render with:
+      tmpl.ExecuteTemplate(w, "layout", data)
+
+  Load order in <head> matters and is not negotiable:
+    1. fonts            - Inter (UI) and JetBrains Mono (identifiers)
+    2. designsystemet   - @digdir/designsystemet-css, declares @layer ds
+    3. dataverket-theme - the generated theme, fills the --ds-* tokens
+    4. dataverket.css   - our patch, declares @layer dataverket after ds
+
+  Everything is served from our own origin. No third-party CDN at runtime:
+  a Dataverket service must render with no egress beyond itself.
+*/}}
+
+{{define "layout"}}<!doctype html>
+{{/* Set lang to the language this service actually renders. */}}
+<html lang="en" data-color-scheme="auto" data-size="md">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  {{/* Lets the browser honour the OS text-size setting, not just page zoom. */}}
+  <meta name="text-scale" content="scale">
+
+  <title>{{block "title" .}}Dataverket{{end}}</title>
+
+  <link rel="icon" href="/static/glyph.svg" type="image/svg+xml">
+
+  <link rel="stylesheet" href="/static/fonts/inter.css">
+  <link rel="stylesheet" href="/static/fonts/jetbrains-mono.css">
+  <link rel="stylesheet" href="/static/designsystemet.css">
+  <link rel="stylesheet" href="/static/dataverket-theme.css">
+  <link rel="stylesheet" href="/static/dataverket.css">
+
+  {{/* Registers every ds-* web component once. Defer: nothing above needs it. */}}
+  <script type="module" src="/static/designsystemet-web.js"></script>
+  <script src="/static/htmx.min.js" defer></script>
+
+  {{block "head" .}}{{end}}
+</head>
+<body>
+  <a class="ds-skip-link" href="#main">Skip to content</a>
+
+  <header>
+    <a href="/" aria-label="Dataverket">
+      {{/*
+        Two sources, one element. The browser picks by colour scheme, so the
+        mark stays legible without JavaScript and without a flash on load.
+        Needs data-color-scheme="auto" on <html> to agree with the OS.
+      */}}
+      <picture>
+        <source srcset="/static/logo-dark.svg" media="(prefers-color-scheme: dark)">
+        <img src="/static/logo-light.svg" alt="" height="32">
+      </picture>
+    </a>
+
+    {{block "nav" .}}{{end}}
+  </header>
+
+  <main id="main">
+    {{block "main" .}}{{end}}
+  </main>
+
+  {{block "scripts" .}}{{end}}
+</body>
+</html>{{end}}

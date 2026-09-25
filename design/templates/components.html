@@ -1,0 +1,165 @@
+{{/*
+  Component reference - the markup a Dataverket handler should emit.
+
+  Every class and attribute here is taken from @digdir/designsystemet-css 1.23.0.
+  Do not invent ds-* classes: if a component is missing, check
+  https://designsystemet.no/en/components before writing CSS of your own.
+
+  Sizing and colour are inherited, not per-component:
+    data-size="sm|md|lg"                  on a container
+    data-color="accent|brand1|neutral|success|warning|danger|info"
+    data-color-scheme="light|dark|auto"
+
+  accent is Dataverket navy and is the primary action colour.
+  brand1 is flag red and is identity only - never a button, never a status.
+*/}}
+
+{{/* ---------------------------------------------------------------- buttons */}}
+{{define "example-buttons"}}
+  <button class="ds-button" type="submit">Create cluster</button>
+  <button class="ds-button" data-variant="secondary" type="button">Cancel</button>
+  <button class="ds-button" data-variant="tertiary" type="button">Details</button>
+
+  {{/* Destructive actions recolour; they do not get their own class. */}}
+  <button class="ds-button" data-color="danger" type="submit">Delete node</button>
+
+  {{/* Icon-only buttons still need an accessible name. */}}
+  <button class="ds-button" data-variant="tertiary" data-icon="true" aria-label="Refresh">
+    <svg width="24" height="24" aria-hidden="true"><!-- lucide refresh-cw --></svg>
+  </button>
+{{end}}
+
+{{/* ------------------------------------------------------------------ field */}}
+{{/*
+  <ds-field> is a web component. It links label, description and validation
+  message to the input with the right aria-* wiring, so you do not hand-write
+  aria-describedby. It degrades to a plain styled field if JS fails to load.
+*/}}
+{{define "example-field"}}
+  <ds-field class="ds-field">
+    <label for="cluster-name">Cluster name</label>
+    <p data-field="description">Lowercase letters, digits and hyphens.</p>
+    <input class="ds-input" id="cluster-name" name="name" value="{{.Name}}"
+           {{if .Error}}aria-invalid="true"{{end}}>
+    {{if .Error}}
+      <p data-field="validation" class="ds-validation-message">{{.Error}}</p>
+    {{end}}
+  </ds-field>
+{{end}}
+
+{{/* Identifiers get the monospace class from dataverket.css. */}}
+{{define "example-field-identifier"}}
+  <ds-field class="ds-field">
+    <label for="cidr">Pod CIDR</label>
+    <input class="ds-input dvk-mono" id="cidr" name="cidr" value="10.42.0.0/16">
+  </ds-field>
+{{end}}
+
+{{/* ------------------------------------------------------------------ alert */}}
+{{define "example-alert"}}
+  <div class="ds-alert" data-color="danger" role="alert">
+    <p class="ds-paragraph">
+      Couldn't reach <span class="dvk-mono">node-3</span> - last seen 4 m ago.
+    </p>
+  </div>
+{{end}}
+
+{{/* ------------------------------------------------------------------- card */}}
+{{define "example-card"}}
+  <div class="ds-card">
+    <h2 class="ds-heading" data-size="xs">Object storage</h2>
+    <p class="ds-paragraph" data-size="sm">4 buckets, 1.2 TiB used</p>
+  </div>
+
+  {{/* data-variant="tinted" sinks the card into the page. */}}
+  <div class="ds-card" data-variant="tinted">
+    <p class="ds-paragraph">Nothing scheduled.</p>
+  </div>
+{{end}}
+
+{{/* ------------------------------------------------------------------ table */}}
+{{/*
+  data-zebra, data-hover and data-sticky-header are boolean attributes.
+  Identifier columns take .dvk-mono so IDs, IPs and hashes line up.
+*/}}
+{{define "example-table"}}
+  <table class="ds-table" data-zebra data-hover>
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Address</th>
+        <th scope="col">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range .Nodes}}
+        <tr>
+          <td class="dvk-mono">{{.Name}}</td>
+          <td class="dvk-mono">{{.Address}}</td>
+          <td><span class="ds-tag" data-color="{{.StatusColor}}">{{.Status}}</span></td>
+        </tr>
+      {{else}}
+        <tr><td colspan="3">No nodes yet.</td></tr>
+      {{end}}
+    </tbody>
+  </table>
+{{end}}
+
+{{/* -------------------------------------------------------------------- tag */}}
+{{/* Status is a tag plus a colour. Never an emoji, never a bare coloured dot. */}}
+{{define "example-tags"}}
+  <span class="ds-tag" data-color="success">Ready</span>
+  <span class="ds-tag" data-color="warning">Draining</span>
+  <span class="ds-tag" data-color="danger">Unreachable</span>
+  <span class="ds-tag" data-variant="outline" data-color="neutral">Unknown</span>
+{{end}}
+
+{{/* ------------------------------------------------------------------- tabs */}}
+{{/* Web component: ds-tabs handles roving focus and arrow keys. */}}
+{{define "example-tabs"}}
+  <ds-tabs class="ds-tabs">
+    <ds-tablist>
+      <ds-tab>Overview</ds-tab>
+      <ds-tab>Nodes</ds-tab>
+      <ds-tab>Events</ds-tab>
+    </ds-tablist>
+    <ds-tabpanel>{{block "tab-overview" .}}{{end}}</ds-tabpanel>
+    <ds-tabpanel>{{block "tab-nodes" .}}{{end}}</ds-tabpanel>
+    <ds-tabpanel>{{block "tab-events" .}}{{end}}</ds-tabpanel>
+  </ds-tabs>
+{{end}}
+
+{{/* ------------------------------------------------------------ breadcrumbs */}}
+{{define "example-breadcrumbs"}}
+  <ds-breadcrumbs class="ds-breadcrumbs">
+    <nav aria-label="Breadcrumb">
+      <ol>
+        <li><a class="ds-link" href="/">Home</a></li>
+        <li><a class="ds-link" href="/clusters">Clusters</a></li>
+        <li><a class="ds-link" aria-current="page" href="">prod-01</a></li>
+      </ol>
+    </nav>
+  </ds-breadcrumbs>
+{{end}}
+
+{{/* ----------------------------------------------------------------- drawer */}}
+{{/*
+  Create and edit flows are right-side drawers, not centred modals: the list
+  behind stays readable. <dialog> gives us focus trap and Esc for free.
+*/}}
+{{define "example-drawer"}}
+  <button class="ds-button" type="button" commandfor="create-cluster" command="show-modal">
+    Create cluster
+  </button>
+
+  <dialog class="ds-dialog" id="create-cluster" data-placement="right">
+    <form method="dialog">
+      <h2 class="ds-heading" data-size="sm">Create cluster</h2>
+      {{template "example-field" .}}
+      <button class="ds-button" type="submit">Create</button>
+      <button class="ds-button" data-variant="secondary" data-command="close" type="button">
+        Cancel
+      </button>
+    </form>
+  </dialog>
+{{end}}

@@ -1,0 +1,102 @@
+{{/*
+  htmx patterns for Dataverket.
+
+  The rule: a handler returns either a full page or the exact fragment that
+  replaces a region. Same templates either way - a fragment is just a
+  {{define}} the full page also includes. No client-side state beyond what the
+  server already sent.
+*/}}
+
+{{/* --------------------------------------------------- swap with an indicator */}}
+{{/*
+  .dvk-busy (dataverket.css) dims the region while the request is in flight.
+  htmx sets .htmx-request on the element carrying hx-* for the duration, so no
+  JavaScript is involved. For work that takes more than a moment, add a
+  .ds-spinner instead of relying on the dimming alone.
+*/}}
+{{define "example-swap"}}
+  <div id="node-list" class="dvk-busy"
+       hx-get="/clusters/{{.ID}}/nodes"
+       hx-trigger="every 10s"
+       hx-swap="outerHTML">
+    {{template "node-list" .}}
+  </div>
+{{end}}
+
+{{define "example-spinner"}}
+  <button class="ds-button"
+          hx-post="/clusters/{{.ID}}/drain"
+          hx-target="#node-list"
+          hx-indicator="#drain-spinner">
+    Drain node
+  </button>
+  <span class="ds-spinner htmx-indicator" id="drain-spinner"
+        data-size="sm" role="status" aria-label="Draining"></span>
+{{end}}
+
+{{/* --------------------------------------------------- server-side validation */}}
+{{/*
+  Validation lives on the server. The handler re-renders the same field
+  fragment with aria-invalid and a message; htmx swaps just that field.
+  Return 422 so the response is not mistaken for success - and set
+  hx-swap="outerHTML" so the replacement keeps the wrapper.
+*/}}
+{{define "example-validated-form"}}
+  <form hx-post="/clusters" hx-target="#name-field" hx-swap="outerHTML">
+    <div id="name-field">{{template "example-field" .}}</div>
+    <button class="ds-button" type="submit">Create</button>
+  </form>
+{{end}}
+
+{{/*
+  Several fields wrong at once: return a ds-error-summary above the form and
+  let the web component move focus to the first offending field.
+*/}}
+{{define "example-error-summary"}}
+  <ds-error-summary class="ds-error-summary">
+    <h2 class="ds-heading" data-size="2xs">Fix these before continuing</h2>
+    <ul>
+      {{range .Errors}}
+        <li><a class="ds-link" href="#{{.Field}}">{{.Message}}</a></li>
+      {{end}}
+    </ul>
+  </ds-error-summary>
+{{end}}
+
+{{/* ------------------------------------------------------------- confirmation */}}
+{{/*
+  Destructive actions name the thing being destroyed and say what cannot be
+  undone. hx-confirm is fine for low-stakes actions; anything that loses data
+  gets a real dialog so the operator has to read it.
+*/}}
+{{define "example-delete"}}
+  <button class="ds-button" data-color="danger"
+          hx-delete="/clusters/{{.ID}}"
+          hx-target="body"
+          hx-confirm="Delete {{.Name}}? This can't be undone.">
+    Delete cluster
+  </button>
+{{end}}
+
+{{/* ------------------------------------------------------------------ paging */}}
+{{/*
+  ds-pagination renders the control from the links you give it; htmx swaps the
+  table body. Keep the href real so the page also works without JavaScript.
+*/}}
+{{define "example-pagination"}}
+  <ds-pagination class="ds-pagination">
+    <nav aria-label="Pagination">
+      <ul>
+        {{range .Pages}}
+          <li>
+            <a class="ds-button" data-variant="tertiary"
+               href="?page={{.Number}}"
+               hx-get="?page={{.Number}}"
+               hx-target="#node-list"
+               {{if .Current}}aria-current="page"{{end}}>{{.Number}}</a>
+          </li>
+        {{end}}
+      </ul>
+    </nav>
+  </ds-pagination>
+{{end}}

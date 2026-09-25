@@ -1,0 +1,154 @@
+<!doctype html>
+<!--
+  Contact sheet. Open with `task preview`.
+
+  Everything here loads the same files a service loads, in the same order. If
+  something looks wrong here, it looks wrong in production too.
+-->
+<html lang="en" data-color-scheme="light" data-size="md">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="text-scale" content="scale">
+<title>Dataverket design system</title>
+<link rel="icon" href="assets/glyph.svg" type="image/svg+xml">
+<link rel="stylesheet" href="vendor/fonts/inter.css">
+<link rel="stylesheet" href="vendor/fonts/jetbrains-mono.css">
+<link rel="stylesheet" href="vendor/designsystemet.css">
+<link rel="stylesheet" href="design-tokens-build/dataverket.css">
+<link rel="stylesheet" href="dataverket.css">
+<script type="module" src="vendor/designsystemet-web.js"></script>
+<style>
+  /* For this sheet only. Does not belong in dataverket.css. */
+  body { margin: 0; padding: var(--ds-size-8); }
+  .sheet { display: grid; gap: var(--ds-size-10); max-width: 70rem; margin-inline: auto; }
+  .row { display: flex; flex-wrap: wrap; gap: var(--ds-size-4); align-items: center; }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr)); gap: var(--ds-size-2); }
+  .swatch { border-radius: var(--ds-border-radius-md); padding: var(--ds-size-3); font-size: var(--ds-font-size-2); }
+  /* Dark-background marks must be shown on a dark plate, or white ink on
+     white is invisible and reads as "missing". */
+  .plate { padding: var(--ds-size-6); border-radius: var(--ds-border-radius-lg); display: flex; gap: var(--ds-size-6); align-items: center; }
+  .plate--light { background: #fff; border: 1px solid var(--ds-color-neutral-border-subtle); }
+  .plate--dark { background: #12161c; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header class="row" style="justify-content: space-between">
+    <h1 class="ds-heading" data-size="lg">Dataverket design system</h1>
+    <button class="ds-button" data-variant="secondary" type="button" id="scheme">Toggle colour scheme</button>
+  </header>
+
+  <section>
+    <h2 class="ds-heading" data-size="sm">The mark</h2>
+    <p class="ds-paragraph" data-size="sm">
+      Four files, two shapes. <code class="dvk-mono">logo-*</code> is the full
+      shape, <code class="dvk-mono">glyph-*</code> is simplified for small
+      sizes and favicons. The suffix names the <em>background</em> the file is
+      for, not the colour of its ink.
+    </p>
+    <div class="row">
+      <div class="plate plate--light">
+        <img src="assets/logo-light.svg" alt="logo-light" height="72">
+        <img src="assets/glyph-light.svg" alt="glyph-light" height="72">
+        <img src="assets/glyph-light.svg" alt="glyph-light at 24px" height="24">
+      </div>
+      <div class="plate plate--dark">
+        <img src="assets/logo-dark.svg" alt="logo-dark" height="72">
+        <img src="assets/glyph-dark.svg" alt="glyph-dark" height="72">
+        <img src="assets/glyph-dark.svg" alt="glyph-dark at 24px" height="24">
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="ds-heading" data-size="sm">Colour</h2>
+    <div class="swatches" id="swatches"></div>
+  </section>
+
+  <section>
+    <h2 class="ds-heading" data-size="sm">Type</h2>
+    <p class="ds-heading" data-size="xl">Sovereign cloud for everyone</p>
+    <p class="ds-paragraph">Body text in Inter. Note the tail on lowercase l: <b>ll11</b></p>
+    <p class="dvk-mono">cluster-prod-01 &middot; 10.42.0.0/16 &middot; sha256:7f3a9c &middot; 4m32s</p>
+  </section>
+
+  <section>
+    <h2 class="ds-heading" data-size="sm">Buttons</h2>
+    <div class="row">
+      <button class="ds-button">Create cluster</button>
+      <button class="ds-button" data-variant="secondary">Cancel</button>
+      <button class="ds-button" data-variant="tertiary">Details</button>
+      <button class="ds-button" data-color="danger">Delete node</button>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="ds-heading" data-size="sm">Tags</h2>
+    <div class="row">
+      <span class="ds-tag" data-color="success">Ready</span>
+      <span class="ds-tag" data-color="warning">Draining</span>
+      <span class="ds-tag" data-color="danger">Unreachable</span>
+      <span class="ds-tag" data-variant="outline" data-color="neutral">Unknown</span>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="ds-heading" data-size="sm">Field</h2>
+    <ds-field class="ds-field" style="max-width: 24rem">
+      <label for="n">Cluster name</label>
+      <p data-field="description">Lowercase letters, digits and hyphens.</p>
+      <input class="ds-input" id="n" value="prod 01" aria-invalid="true">
+      <p data-field="validation" class="ds-validation-message">Spaces are not allowed.</p>
+    </ds-field>
+  </section>
+
+  <section>
+    <h2 class="ds-heading" data-size="sm">Table</h2>
+    <table class="ds-table" data-zebra data-hover>
+      <thead><tr><th>Name</th><th>Address</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td class="dvk-mono">node-1</td><td class="dvk-mono">10.42.0.11</td><td><span class="ds-tag" data-color="success">Ready</span></td></tr>
+        <tr><td class="dvk-mono">node-2</td><td class="dvk-mono">10.42.0.12</td><td><span class="ds-tag" data-color="warning">Draining</span></td></tr>
+        <tr><td class="dvk-mono">node-3</td><td class="dvk-mono">10.42.0.13</td><td><span class="ds-tag" data-color="danger">Unreachable</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2 class="ds-heading" data-size="sm">Alert</h2>
+    <div class="ds-alert" data-color="danger" role="alert">
+      <p class="ds-paragraph">Couldn't reach <span class="dvk-mono">node-3</span> - last seen 4 m ago.</p>
+    </div>
+  </section>
+
+</div>
+
+<script type="module">
+  const root = document.documentElement;
+  document.getElementById('scheme').onclick = () => {
+    root.dataset.colorScheme = root.dataset.colorScheme === 'dark' ? 'light' : 'dark';
+  };
+
+  // Reads the actual token values out of the generated theme, so this sheet
+  // can never drift out of sync with the CSS.
+  const groups = ['accent', 'brand1', 'neutral', 'success', 'warning', 'danger', 'info'];
+  const variants = ['background-default', 'surface-tinted', 'border-subtle', 'base-default', 'text-default'];
+  const box = document.getElementById('swatches');
+  for (const g of groups) {
+    for (const v of variants) {
+      const el = document.createElement('div');
+      el.className = 'swatch';
+      el.style.background = `var(--ds-color-${g}-${v})`;
+      el.style.color = v.startsWith('base')
+        ? `var(--ds-color-${g}-base-contrast-default)`
+        : `var(--ds-color-${g}-text-default)`;
+      el.style.border = '1px solid var(--ds-color-neutral-border-subtle)';
+      el.textContent = `${g} ${v}`;
+      box.append(el);
+    }
+  }
+</script>
+</body>
+</html>

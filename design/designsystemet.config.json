@@ -1,0 +1,17 @@
+{
+  "$schema": "https://designsystemet.no/schemas/config/latest.json",
+  "outDir": "./design-tokens",
+  "themes": {
+    "dataverket": {
+      "colors": {
+        "accent": "#0A2A5E",
+        "brand1": "#BA0C2F",
+        "neutral": "#29384A"
+      },
+      "typography": {
+        "fontFamily": "Inter"
+      },
+      "borderRadius": 8
+    }
+  }
+}
