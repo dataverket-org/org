@@ -312,6 +312,7 @@ Hva en melding har lov til å gjøre blir derfor bestemt av "konvolutten" den li
 ## Innslipp, del 1: autentisering
 
 ```mermaid
+%%{init: {"handDrawnSeed": 1}}%%
 sequenceDiagram
   actor K as Klient (menneske eller maskin)
   participant Z as Identitet (Zitadel)
@@ -332,6 +333,7 @@ sequenceDiagram
 ## Innslipp, del 2: autorisasjon
 
 ```mermaid
+%%{init: {"handDrawnSeed": 1}}%%
 sequenceDiagram
   actor U as Bruker
   participant N as Sentral (NATS)
@@ -375,7 +377,7 @@ https://docs.digdir.no/docs/Maskinporten/maskinporten_protocol_token.html
 ## Litt mer oversiktlig?
 
 ```mermaid
-%%{init: {"fontFamily": "Helvetica, Arial, sans-serif", "flowchart": {"htmlLabels": true, "padding": 12}}}%%
+%%{init: {"handDrawnSeed": 1, "fontFamily": "Helvetica, Arial, sans-serif", "flowchart": {"htmlLabels": true, "padding": 12}}}%%
 flowchart TB
   ID["Identitet<br/>(Zitadel)"]
 
@@ -413,7 +415,7 @@ flowchart TB
 ## Mulige tjenester i en region (dine tjenester?)
 
 ```mermaid
-%%{init: {"fontFamily": "Helvetica, Arial, sans-serif", "flowchart": {"htmlLabels": true, "padding": 12}}}%%
+%%{init: {"handDrawnSeed": 1, "fontFamily": "Helvetica, Arial, sans-serif", "flowchart": {"htmlLabels": true, "padding": 12}}}%%
 flowchart TB
   subgraph R1["Region 1"]
     direction TB
