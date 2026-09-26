@@ -7,7 +7,7 @@
   Load order in <head> matters and is not negotiable:
     1. fonts            - Inter (UI) and JetBrains Mono (identifiers)
     2. designsystemet   - @digdir/designsystemet-css, declares @layer ds
-    3. dataverket-theme - the generated theme, fills the --ds-* tokens
+    3. theme            - the generated theme, fills the --ds-* tokens
     4. dataverket.css   - our patch, declares @layer dataverket after ds
 
   Everything is served from our own origin. No third-party CDN at runtime:
@@ -31,7 +31,7 @@
   <link rel="stylesheet" href="/static/fonts/inter.css">
   <link rel="stylesheet" href="/static/fonts/jetbrains-mono.css">
   <link rel="stylesheet" href="/static/designsystemet.css">
-  <link rel="stylesheet" href="/static/dataverket-theme.css">
+  <link rel="stylesheet" href="/static/theme.css">
   <link rel="stylesheet" href="/static/dataverket.css">
 
   {{/* Registers every ds-* web component once. Defer: nothing above needs it. */}}
@@ -44,16 +44,36 @@
   <a class="ds-skip-link" href="#main">Skip to content</a>
 
   <header>
-    <a href="/" aria-label="Dataverket">
-      {{/*
-        Two sources, one element. The browser picks by colour scheme, so the
-        mark stays legible without JavaScript and without a flash on load.
-        Needs data-color-scheme="auto" on <html> to agree with the OS.
-      */}}
-      <picture>
-        <source srcset="/static/logo-dark.svg" media="(prefers-color-scheme: dark)">
-        <img src="/static/logo-light.svg" alt="" height="32">
-      </picture>
+    {{/*
+      The brand link, built the way designsystemet.no builds its own: two
+      inline SVGs at one height, swapped with `display` at a breakpoint. The
+      wide lockup shows when there is room; the bare mark takes over when
+      there is not.
+
+      They must be INLINE. CSS cannot reach inside an <img>, which is also why
+      `fill="currentColor"` does nothing there. Serve them by embedding the
+      generated files and printing them as template.HTML - do not paste the
+      path data in here, or it will drift from build/:
+
+          //go:embed static/lockup.svg static/glyph.svg
+          var marks embed.FS
+
+          func mark(name string) (template.HTML, error) {
+              b, err := marks.ReadFile("static/" + name)
+              return template.HTML(b), err
+          }
+
+      Both files already carry the class they need (dvk-brand-lockup,
+      dvk-brand-mark) and a <title>, so nothing has to be added after reading
+      them.
+
+      ds-focus on the <a> keeps Designsystemet's focus ring; without it the
+      link falls back to the browser's thin default outline.
+    */}}
+    <a class="dvk-brand ds-focus" style="--dvk-brand-size: 32px"
+       href="/" aria-label="Dataverket, til forsiden">
+      {{.Marks.Lockup}}
+      {{.Marks.Glyph}}
     </a>
 
     {{block "nav" .}}{{end}}

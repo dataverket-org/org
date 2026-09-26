@@ -30,8 +30,12 @@
           hx-indicator="#drain-spinner">
     Drain node
   </button>
-  <span class="ds-spinner htmx-indicator" id="drain-spinner"
-        data-size="sm" role="status" aria-label="Draining"></span>
+  {{/* ds-spinner is an <svg> with two circles; an empty <span> renders nothing. */}}
+  <svg class="ds-spinner htmx-indicator" id="drain-spinner" data-size="sm"
+       viewBox="0 0 50 50" role="img" aria-label="Draining">
+    <circle class="ds-spinner__background" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+    <circle class="ds-spinner__circle" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+  </svg>
 {{end}}
 
 {{/* --------------------------------------------------- server-side validation */}}
@@ -54,7 +58,7 @@
 */}}
 {{define "example-error-summary"}}
   <ds-error-summary class="ds-error-summary">
-    <h2 class="ds-heading" data-size="2xs">Fix these before continuing</h2>
+    <h2>Fix these before continuing</h2>
     <ul>
       {{range .Errors}}
         <li><a class="ds-link" href="#{{.Field}}">{{.Message}}</a></li>
@@ -80,23 +84,28 @@
 
 {{/* ------------------------------------------------------------------ paging */}}
 {{/*
-  ds-pagination renders the control from the links you give it; htmx swaps the
-  table body. Keep the href real so the page also works without JavaScript.
+  ds-pagination builds the numbers itself from data-href, data-current and
+  data-total - you do not loop over pages in Go. Supply enough empty <li><a>
+  slots for the widest control you want (7 is the usual max) and the component
+  fills, hides and labels them. %d in data-href is the page number.
+
+  Keep the href real so the control still works without JavaScript; hx-boost
+  on an ancestor turns the generated links into htmx swaps.
 */}}
 {{define "example-pagination"}}
-  <ds-pagination class="ds-pagination">
-    <nav aria-label="Pagination">
-      <ul>
-        {{range .Pages}}
-          <li>
-            <a class="ds-button" data-variant="tertiary"
-               href="?page={{.Number}}"
-               hx-get="?page={{.Number}}"
-               hx-target="#node-list"
-               {{if .Current}}aria-current="page"{{end}}>{{.Number}}</a>
-          </li>
-        {{end}}
-      </ul>
-    </nav>
+  <ds-pagination class="ds-pagination" aria-label="Pages"
+                 data-href="?page=%d"
+                 data-current="{{.Page}}"
+                 data-total="{{.TotalPages}}"
+                 hx-boost="true" hx-target="#node-list" hx-select="#node-list">
+    <ol>
+      <li><a class="ds-button" href="#none"></a></li>
+      <li><a class="ds-button" href="#none"></a></li>
+      <li><a class="ds-button" href="#none"></a></li>
+      <li><a class="ds-button" href="#none"></a></li>
+      <li><a class="ds-button" href="#none"></a></li>
+      <li><a class="ds-button" href="#none"></a></li>
+      <li><a class="ds-button" href="#none"></a></li>
+    </ol>
   </ds-pagination>
 {{end}}

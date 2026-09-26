@@ -130,15 +130,19 @@
 {{end}}
 
 {{/* ------------------------------------------------------------ breadcrumbs */}}
+{{/*
+  No <nav> wrapper: ds-breadcrumbs is the landmark itself. The leading <a> is
+  the "back one level" link shown on narrow screens; the <ol> is the full
+  trail. Element order is what the component keys off.
+*/}}
 {{define "example-breadcrumbs"}}
   <ds-breadcrumbs class="ds-breadcrumbs">
-    <nav aria-label="Breadcrumb">
-      <ol>
-        <li><a class="ds-link" href="/">Home</a></li>
-        <li><a class="ds-link" href="/clusters">Clusters</a></li>
-        <li><a class="ds-link" aria-current="page" href="">prod-01</a></li>
-      </ol>
-    </nav>
+    <a class="ds-link" href="/clusters" aria-label="Back to Clusters">Clusters</a>
+    <ol>
+      <li><a class="ds-link" href="/">Home</a></li>
+      <li><a class="ds-link" href="/clusters">Clusters</a></li>
+      <li><a class="ds-link" href="/clusters/{{.ID}}">{{.Name}}</a></li>
+    </ol>
   </ds-breadcrumbs>
 {{end}}
 

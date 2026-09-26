@@ -1,27 +1,37 @@
-# Generates Dataverket's Designsystemet theme, and fetches what we serve ourselves.
+# Everything design/ generates.
 #
-# Node is a build tool here, not a runtime dependency. Nobody should have to
-# install npm to work on Dataverket, so the CLI runs in a container and the
-# result is committed. Our services are Go + htmx and never see a node_modules.
+# You need podman (or docker) and go-task. Nothing else: no Node on your
+# machine, no Python. The build itself lives in the Dockerfile and runs in
+# image layers - nothing is bind-mounted, so there is no :z for SELinux, no
+# --user to stop output being root-owned, and no mount semantics to differ
+# between macOS, Linux and rootless. `task build` runs the image build and
+# copies the results out.
 #
-#   task            tokens + vendor
-#   task tokens     regenerate design-tokens-build/dataverket.css (needs podman/docker)
-#   task vendor     fetch Designsystemet, Inter, JetBrains Mono and htmx into vendor/
-#   task check      fail if the committed theme is out of sync with the config
-#   task preview    serve preview.html and open it
-#   task clean      remove everything fetched or regenerated
-#   task clean:all  the same, plus the committed theme
+#   task            list the targets
+#   task build      build the image and copy build/ and vendor/ out of it
+#   task preview    serve the built site from the image
+#   task check      fail if the committed build/ is out of sync with the sources
+#   task clean      remove what `task build` produced
 #
-# `task tokens` only runs when designsystemet.config.json changes, or when
-# DS_VERSION is bumped. Its output is a build artifact: never edit it by hand.
+# Two directories come out, and the split is the whole filing system:
+#
+#   build/   what we generate from our own sources - theme.css from
+#            designsystemet.config.json, the mark SVGs from logo.mjs.
+#            Committed, so a consumer needs no toolchain at all.
+#   vendor/  third-party, fetched verbatim. Not committed.
 version: '3'
 
 vars:
-  # Everything is pinned here. Bump in one place and theme, CSS and JS follow.
+  # Bump a version, then `task image:rebuild`. DS_VERSION also names the image
+  # tag, so bumping that one rebuilds on its own.
   DS_VERSION: '1.23.0'
+  ESBUILD_VERSION: '0.24.0'
+  FONTKIT_VERSION: '2.0.4'
+  HTTP_SERVER_VERSION: '14.1.1'
   HTMX_VERSION: '2.0.4'
   FONTSOURCE_VERSION: '5.3.0'
-  NODE_IMAGE: 'docker.io/library/node:22-alpine'
+
+  IMAGE: 'dataverket-design:{{.DS_VERSION}}'
 
   # podman first, docker if podman is missing. CONTAINER_BIN in the env wins.
   CONTAINER_BIN:
@@ -33,115 +43,99 @@ vars:
 
 tasks:
   default:
-    desc: Generate the theme and fetch the dependencies
+    # No target given means "what can I run here", not "rebuild everything".
+    silent: true
     cmds:
-      - task: tokens
-      - task: vendor
+      - task --list
 
-  tokens:
-    desc: Regenerate design-tokens-build/dataverket.css from designsystemet.config.json
-    sources: [designsystemet.config.json]
-    generates: [design-tokens-build/dataverket.css]
-    cmds:
-      - task: cli
-        vars: {ARGS: 'tokens create --clean'}
-      - task: cli
-        vars: {ARGS: 'tokens build --clean'}
-
-  cli:
-    internal: true
-    # --user keeps the generated files owned by you rather than root. npm wants
-    # a writable HOME, so it is pointed at /tmp. :z is for SELinux hosts and is
-    # harmless elsewhere.
-    cmd: >-
-      {{.CONTAINER_BIN}} run --rm
-      -v "{{.TASKFILE_DIR}}:/work:z"
-      -w /work
-      --user "$(id -u):$(id -g)"
-      -e HOME=/tmp
-      -e npm_config_cache=/tmp/.npm
-      {{.NODE_IMAGE}}
-      npx --yes @digdir/designsystemet@{{.DS_VERSION}} {{.ARGS}}
-
-  check:
-    desc: Fail if the committed theme is out of sync with the config
-    cmds:
-      - cp design-tokens-build/dataverket.css /tmp/dataverket-check.css
-      - task: tokens
-      - cmd: diff -q /tmp/dataverket-check.css design-tokens-build/dataverket.css
-        msg: theme is out of sync with designsystemet.config.json, run `task tokens` and commit the result
-
-  vendor:
-    desc: Fetch Designsystemet, the fonts and htmx into vendor/
+  image:
+    desc: Build the toolchain image, which also runs the build
+    # Both checks are needed. `sources` alone skips the build when the image
+    # has been deleted but the files have not changed; `status` alone never
+    # rebuilds after a source edit.
     status:
-      - test -f vendor/designsystemet.css
-      - test -f vendor/designsystemet-web.js
-      - test -f vendor/htmx.min.js
-      - test -f vendor/fonts/inter.css
-      - test -f vendor/fonts/jetbrains-mono.css
-    cmds:
-      - mkdir -p vendor/fonts/files
-      # Straight from the npm registry with curl and tar. No npm, no node_modules.
-      - >-
-        curl -sSfL "https://registry.npmjs.org/@digdir/designsystemet-css/-/designsystemet-css-{{.DS_VERSION}}.tgz"
-        | tar -xzO package/dist/src/index.css > vendor/designsystemet.css
-      # jsDelivr's +esm build inlines @floating-ui and @u-elements, so this is a
-      # single file with no bundler. Fetched once and committed by the consumer.
-      - >-
-        curl -sSfL "https://cdn.jsdelivr.net/npm/@digdir/designsystemet-web@{{.DS_VERSION}}/+esm"
-        -o vendor/designsystemet-web.js
-      - >-
-        curl -sSfL "https://registry.npmjs.org/htmx.org/-/htmx.org-{{.HTMX_VERSION}}.tgz"
-        | tar -xzO package/dist/htmx.min.js > vendor/htmx.min.js
-      - task: font
-        vars: {PKG: inter, OUT: inter, WEIGHTS: '400 500 600'}
-      - task: font
-        vars: {PKG: jetbrains-mono, OUT: jetbrains-mono, WEIGHTS: '400 500'}
+      - '{{.CONTAINER_BIN}} image exists {{.IMAGE}}'
+    sources:
+      - Dockerfile
+      - fonts.sh
+      - designsystemet.config.json
+      - logo.mjs
+      - dataverket.css
+      - preview.html
+    cmd: >-
+      {{.CONTAINER_BIN}} build -q
+      --build-arg DS_VERSION={{.DS_VERSION}}
+      --build-arg ESBUILD_VERSION={{.ESBUILD_VERSION}}
+      --build-arg FONTKIT_VERSION={{.FONTKIT_VERSION}}
+      --build-arg HTTP_SERVER_VERSION={{.HTTP_SERVER_VERSION}}
+      --build-arg HTMX_VERSION={{.HTMX_VERSION}}
+      --build-arg FONTSOURCE_VERSION={{.FONTSOURCE_VERSION}}
+      -t {{.IMAGE}} "{{.TASKFILE_DIR}}"
 
-  font:
-    internal: true
-    # Latin subset only. Designsystemet asks for weights 400, 500 and 600 for
-    # Inter; JetBrains Mono only needs 400 and 500 for identifiers. The awk
-    # block keeps the latin @font-face rule (the one whose unicode-range starts
-    # at U+0000) and drops the other subsets; the sed strips the .woff fallback
-    # we do not ship. Fonts are served from us, not from altinncdn.no or Google.
+  image:rebuild:
+    desc: Rebuild the image from scratch, ignoring the layer cache
     cmds:
+      - '{{.CONTAINER_BIN}} build --no-cache -q -t {{.IMAGE}} "{{.TASKFILE_DIR}}"'
+
+  image:rm:
+    desc: Delete the image
+    cmd: '{{.CONTAINER_BIN}} rmi -f {{.IMAGE}} || true'
+
+  build:
+    desc: Build the image and copy build/ and vendor/ out of it
+    deps: [image]
+    cmds:
+      - task: copy-out
+        vars: {SRC: build, DEST: build}
+      - task: copy-out
+        vars: {SRC: vendor, DEST: vendor}
+
+  copy-out:
+    internal: true
+    # `podman cp` needs a container, not an image, so one is created and thrown
+    # away without ever running. It is also the only extraction that works
+    # everywhere: `build --output type=local` is unsupported in podman's remote
+    # mode, which is what macOS uses.
+    cmds:
+      - rm -rf "{{.TASKFILE_DIR}}/{{.DEST}}"
       - |
-        set -e
-        tgz=$(mktemp)
-        curl -sSfL "https://registry.npmjs.org/@fontsource/{{.PKG}}/-/{{.PKG}}-{{.FONTSOURCE_VERSION}}.tgz" -o "$tgz"
-        : > vendor/fonts/{{.OUT}}.css
-        for w in {{.WEIGHTS}}; do
-          tar -xzO -f "$tgz" "package/files/{{.PKG}}-latin-$w-normal.woff2" \
-            > "vendor/fonts/files/{{.PKG}}-latin-$w-normal.woff2"
-          tar -xzO -f "$tgz" "package/$w.css" \
-            | awk '/@font-face/{keep=0; buf=""} {buf=buf $0 "\n"} /unicode-range/{if ($0 ~ /U\+0000/) keep=1} /^}/{if (keep) printf "%s", buf; keep=0; buf=""}' \
-            | sed "s#, url([^)]*\.woff) format('woff')##" \
-            >> vendor/fonts/{{.OUT}}.css
-        done
-        rm -f "$tgz"
+        cid=$({{.CONTAINER_BIN}} create {{.IMAGE}} true)
+        {{.CONTAINER_BIN}} cp "$cid:/site/{{.SRC}}" "{{.TASKFILE_DIR}}/{{.DEST}}"
+        {{.CONTAINER_BIN}} rm "$cid" >/dev/null
 
   preview:
-    desc: Serve preview.html and open it in the browser
-    deps: [vendor]
-    # The files load as modules, so file:// will not do. Plain server on 8123.
+    desc: Serve the built site from the image
+    # Fails fast rather than quietly building for half a minute.
+    preconditions:
+      - sh: '{{.CONTAINER_BIN}} image exists {{.IMAGE}}'
+        msg: no image yet - run `task build` first
     cmds:
       - '{{if eq OS "darwin"}}open{{else}}xdg-open{{end}} http://localhost:8123/preview.html &'
-      - python3 -m http.server 8123 --directory "{{.TASKFILE_DIR}}"
+      - '{{.CONTAINER_BIN}} run --rm -p 8123:8123 {{.IMAGE}}'
+
+  check:
+    desc: Fail if the committed build/ is out of sync with the sources
+    # Rebuilds from the sources and diffs against what is committed. It does
+    # not trust the layer cache for this: --no-cache on the generate stages
+    # would be slow, so the image task's `sources` fingerprint is relied on to
+    # rebuild when anything it reads has changed.
+    deps: [image]
+    cmds:
+      - task: copy-out
+        vars: {SRC: build, DEST: .check}
+      - cmd: diff -r "{{.TASKFILE_DIR}}/.check" "{{.TASKFILE_DIR}}/build"
+        msg: build/ is out of sync with the sources, run `task build` and commit the result
+      - rm -rf "{{.TASKFILE_DIR}}/.check"
 
   clean:
-    desc: Remove everything that can be fetched or regenerated
-    # Only touches what is in .gitignore: the intermediate tokens, the vendored
-    # third-party files and go-task's checksum cache. design-tokens-build/ is
-    # committed and survives, so a consumer who only wants the theme can still
-    # build after a clean. Use `task clean:all` to drop that too.
+    desc: Remove what `task build` produced
+    # vendor/ is fetched and gitignored; build/ is committed, so it survives.
+    # `task clean:all` drops that too, and the image goes with `task image:rm`.
     cmds:
-      - rm -rf design-tokens vendor .task
+      - rm -rf vendor .task .check
 
   clean:all:
-    desc: Clean, and drop the committed theme as well (back to sources only)
-    # After this, the directory holds nothing but sources: the config, the
-    # patch, the assets and the templates. `task` puts it all back.
+    desc: Clean, and drop the committed build/ as well (back to sources only)
     cmds:
       - task: clean
-      - rm -rf design-tokens-build
+      - rm -rf build

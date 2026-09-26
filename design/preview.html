@@ -4,6 +4,11 @@
 
   Everything here loads the same files a service loads, in the same order. If
   something looks wrong here, it looks wrong in production too.
+
+  Markup is taken from Designsystemet's own demo page (packages/web/index.html
+  in digdir/designsystemet) and from the component CSS in
+  @digdir/designsystemet-css 1.23.0. Do not "tidy" it: the web components and
+  the :has() selectors depend on the exact element order.
 -->
 <html lang="en" data-color-scheme="light" data-size="md">
 <head>
@@ -11,25 +16,65 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="text-scale" content="scale">
 <title>Dataverket design system</title>
-<link rel="icon" href="assets/glyph.svg" type="image/svg+xml">
+<link rel="icon" href="build/glyph.svg" type="image/svg+xml">
 <link rel="stylesheet" href="vendor/fonts/inter.css">
 <link rel="stylesheet" href="vendor/fonts/jetbrains-mono.css">
 <link rel="stylesheet" href="vendor/designsystemet.css">
-<link rel="stylesheet" href="design-tokens-build/dataverket.css">
+<link rel="stylesheet" href="build/theme.css">
 <link rel="stylesheet" href="dataverket.css">
 <script type="module" src="vendor/designsystemet-web.js"></script>
 <style>
-  /* For this sheet only. Does not belong in dataverket.css. */
+  /* For this sheet only. None of this belongs in dataverket.css. */
   body { margin: 0; padding: var(--ds-size-8); }
-  .sheet { display: grid; gap: var(--ds-size-10); max-width: 70rem; margin-inline: auto; }
+  section { scroll-margin-top: var(--ds-size-4); }
+  .sheet { display: grid; gap: var(--ds-size-12); max-width: 74rem; margin-inline: auto; }
   .row { display: flex; flex-wrap: wrap; gap: var(--ds-size-4); align-items: center; }
-  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr)); gap: var(--ds-size-2); }
-  .swatch { border-radius: var(--ds-border-radius-md); padding: var(--ds-size-3); font-size: var(--ds-font-size-2); }
-  /* Dark-background marks must be shown on a dark plate, or white ink on
-     white is invisible and reads as "missing". */
-  .plate { padding: var(--ds-size-6); border-radius: var(--ds-border-radius-lg); display: flex; gap: var(--ds-size-6); align-items: center; }
-  .plate--light { background: #fff; border: 1px solid var(--ds-color-neutral-border-subtle); }
-  .plate--dark { background: #12161c; }
+  .row--end { align-items: flex-end; }
+  .stack { display: grid; gap: var(--ds-size-4); }
+  h2.ds-heading { margin-block: 0 var(--ds-size-4); }
+  h3 { font: inherit; color: var(--ds-color-neutral-text-subtle); margin-block: var(--ds-size-5) var(--ds-size-2); }
+
+  /* Swatches print their resolved value, so "white on white" is visible as a
+     fact rather than as an empty box. */
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: var(--ds-size-2); }
+  .swatch { border-radius: var(--ds-border-radius-md); padding: var(--ds-size-3); font-size: var(--ds-font-size-2);
+            border: 1px solid var(--ds-color-neutral-border-default); display: grid; gap: 2px; }
+  .swatch b { font-weight: 500; }
+  .swatch code { font-family: var(--dvk-font-mono); font-size: var(--ds-font-size-1); opacity: .8; }
+  .swatch--pagebg { outline: 1px dashed var(--ds-color-neutral-border-strong); outline-offset: 2px; }
+  .swatch--page { box-shadow: 0 0 0 3px var(--ds-color-accent-base-default); }
+  .swatch--page b::after { content: " - the page"; font-weight: 400; color: var(--ds-color-neutral-text-subtle); }
+
+  /* Dark-background marks need a dark plate, or white ink on white is
+     invisible and reads as "missing". */
+  .plate { padding: var(--ds-size-6); border-radius: var(--ds-border-radius-lg);
+           display: flex; gap: var(--ds-size-6); align-items: center; flex-wrap: wrap; }
+  /* Every mark is centred in a box as tall as the largest one, so the whole
+     ladder shares one centre line - the same axis the lockup aligns on. */
+  .plate figure > .box { display: grid; align-items: center; justify-items: center; }
+  .plate--ladder figure > .box { height: 128px; }
+  .plate--small figure > .box { height: 40px; }
+  .plate--lockup figure > .box { height: 64px; }
+  /* Light and dark shown side by side, equal height, so the pair can be
+     compared at a glance instead of by scrolling. */
+  .duo { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ds-size-5); }
+  .duo > div { display: grid; grid-template-rows: auto 1fr; gap: var(--ds-size-2); }
+  .duo h3 { margin: 0; }
+  .duo .plate { height: 100%; box-sizing: border-box; }
+  @media (max-width: 60rem) { .duo { grid-template-columns: 1fr; } }
+  /* A fixed-colour surface must declare its own data-color-scheme, or the
+     tokens inside it keep resolving to the page's scheme and you get
+     near-white text on a white plate. Same trap as the <picture> one. */
+  .plate--light, .plate--dark { background: var(--ds-color-neutral-background-default); }
+  .plate--light, .plate--dark { border: 1px solid var(--ds-color-neutral-border-subtle); }
+  .plate figure { margin: 0; display: grid; gap: var(--ds-size-2); justify-items: center; }
+  .plate figcaption { font-size: var(--ds-font-size-1); font-family: var(--dvk-font-mono);
+                      color: var(--ds-color-neutral-text-subtle); }
+
+  /* Fakes a browser tab so the 16px glyph is judged at its real size. */
+  .tab { display: inline-flex; align-items: center; gap: 8px; background: var(--ds-color-neutral-surface-tinted);
+         border: 1px solid var(--ds-color-neutral-border-subtle); border-radius: 8px 8px 0 0;
+         padding: 8px 14px; font-size: 13px; }
 </style>
 </head>
 <body>
@@ -37,75 +82,314 @@
 
   <header class="row" style="justify-content: space-between">
     <h1 class="ds-heading" data-size="lg">Dataverket design system</h1>
-    <button class="ds-button" data-variant="secondary" type="button" id="scheme">Toggle colour scheme</button>
+    <div class="row">
+      <button class="ds-button" data-variant="secondary" type="button" id="scheme" aria-pressed="false">Colour scheme: light</button>
+      <fieldset class="ds-togglegroup" focusgroup="radiogroup" aria-label="Size" id="size">
+        <label class="ds-button"><input type="radio" name="size" value="sm">sm</label>
+        <label class="ds-button"><input type="radio" name="size" value="md" checked>md</label>
+        <label class="ds-button"><input type="radio" name="size" value="lg">lg</label>
+      </fieldset>
+    </div>
   </header>
 
-  <section>
+  <!-- ============================================================ mark -->
+  <section id="mark">
     <h2 class="ds-heading" data-size="sm">The mark</h2>
     <p class="ds-paragraph" data-size="sm">
-      Four files, two shapes. <code class="dvk-mono">logo-*</code> is the full
-      shape, <code class="dvk-mono">glyph-*</code> is simplified for small
-      sizes and favicons. The suffix names the <em>background</em> the file is
-      for, not the colour of its ink.
+      The suffix names the <em>background</em> the file is for, not the colour
+      of its ink. <code class="dvk-mono">logo-*</code> is the full shape and
+      holds down to 32&nbsp;px. <b>24&nbsp;px is the first size that takes
+      <code class="dvk-mono">glyph-*</code></b>: below 32 the shoulders and the
+      doorway close up, and the simplified shape stays legible where the full
+      one turns to mush.
     </p>
-    <div class="row">
-      <div class="plate plate--light">
-        <img src="assets/logo-light.svg" alt="logo-light" height="72">
-        <img src="assets/glyph-light.svg" alt="glyph-light" height="72">
-        <img src="assets/glyph-light.svg" alt="glyph-light at 24px" height="24">
+
+    <div class="duo">
+      <div>
+        <h3>logo, on light</h3>
+        <div data-color-scheme="light" class="plate plate--light plate--ladder">
+          <figure><div class="box"><img src="build/logo-light.svg" alt="" height="128"></div><figcaption>128</figcaption></figure>
+          <figure><div class="box"><img src="build/logo-light.svg" alt="" height="64"></div><figcaption>64</figcaption></figure>
+          <figure><div class="box"><img src="build/logo-light.svg" alt="" height="48"></div><figcaption>48</figcaption></figure>
+          <figure><div class="box"><img src="build/logo-light.svg" alt="" height="32"></div><figcaption>32</figcaption></figure>
+        </div>
       </div>
-      <div class="plate plate--dark">
-        <img src="assets/logo-dark.svg" alt="logo-dark" height="72">
-        <img src="assets/glyph-dark.svg" alt="glyph-dark" height="72">
-        <img src="assets/glyph-dark.svg" alt="glyph-dark at 24px" height="24">
+      <div>
+        <h3>logo, on dark</h3>
+        <div data-color-scheme="dark" class="plate plate--dark plate--ladder">
+          <figure><div class="box"><img src="build/logo-dark.svg" alt="" height="128"></div><figcaption>128</figcaption></figure>
+          <figure><div class="box"><img src="build/logo-dark.svg" alt="" height="64"></div><figcaption>64</figcaption></figure>
+          <figure><div class="box"><img src="build/logo-dark.svg" alt="" height="48"></div><figcaption>48</figcaption></figure>
+          <figure><div class="box"><img src="build/logo-dark.svg" alt="" height="32"></div><figcaption>32</figcaption></figure>
+        </div>
+      </div>
+    </div>
+
+    <h3>lockup</h3>
+    <p class="ds-paragraph" data-size="sm">
+      One asset, not a mark and a word arranged by CSS. The wordmark is cut to
+      outlines by <code class="dvk-mono">logo.mjs</code>, so the
+      proportions cannot drift, it needs no webfont, and it scales as a unit.
+      Same approach as designsystemet.no's own logo.
+    </p>
+    <div class="duo">
+      <div data-color-scheme="light" class="plate plate--light plate--lockup">
+        <figure><div class="box"><img src="build/lockup-light.svg" alt="Dataverket" height="55"></div><figcaption>64</figcaption></figure>
+        <figure><div class="box"><img src="build/lockup-light.svg" alt="Dataverket" height="41"></div><figcaption>48</figcaption></figure>
+      </div>
+      <div data-color-scheme="dark" class="plate plate--dark plate--lockup">
+        <figure><div class="box"><img src="build/lockup-dark.svg" alt="Dataverket" height="55"></div><figcaption>64</figcaption></figure>
+        <figure><div class="box"><img src="build/lockup-dark.svg" alt="Dataverket" height="41"></div><figcaption>48</figcaption></figure>
+      </div>
+    </div>
+
+    <h3>the brand link</h3>
+    <p class="ds-paragraph" data-size="sm">
+      <code class="dvk-mono">.dvk-brand</code> with both SVGs inlined and
+      <code class="dvk-mono">ds-focus</code> on the link. Tab to it to see the
+      ring. Toggle the colour scheme - it follows, because an inline SVG can
+      read <code class="dvk-mono">currentColor</code> and an
+      <code class="dvk-mono">&lt;img&gt;</code> cannot. Narrow the window past
+      30rem and the wordmark gives way to the bare mark.
+    </p>
+    <div class="ds-card">
+      <a class="dvk-brand ds-focus" style="--dvk-brand-size: 40px" href="#none">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="29 120 5226.45 1027" fill="currentColor" class="dvk-brand-lockup" role="img">
+          <title>Dataverket</title>
+          <path d="M89 120H249V250H349V120H499V250H599V120H759V280L699 380L710 617H476V517A52 52 0 0 0 372 517V617H138L149 380L89 280Z"/><rect x="29" y="663" width="791" height="196" rx="48"/><rect x="29" y="951" width="791" height="196" rx="48"/>
+          <path data-text="true" d="M1322.64 921.06H1177.12V831.9H1317.62Q1377.83 831.9 1418.17 809.7Q1458.5 787.51 1478.96 743.31Q1499.42 699.12 1499.42 632.73Q1499.42 567.11 1478.96 523.11Q1458.5 479.11 1418.94 457.1Q1379.38 435.1 1320.32 435.1H1174.03V345.94H1326.5Q1412.19 345.94 1473.56 380.29Q1534.93 414.65 1567.93 479.11Q1600.93 543.57 1600.93 632.73Q1600.93 722.66 1567.93 787.32Q1534.93 851.97 1472.59 886.51Q1410.26 921.06 1322.64 921.06ZM1231.16 345.94V921.06H1128.1V345.94Z M1814.77 929.94Q1773.86 929.94 1741.05 915.08Q1708.24 900.22 1689.32 871.27Q1670.41 842.32 1670.41 799.86Q1670.41 763.19 1684.11 739.26Q1697.82 715.33 1721.17 701.05Q1744.52 686.77 1773.86 679.43Q1803.19 672.1 1834.84 669.01Q1872.28 664.76 1895.83 661.68Q1919.37 658.59 1930.37 651.64Q1941.37 644.69 1941.37 630.03V628.1Q1941.37 606.87 1932.88 592.01Q1924.39 577.15 1907.6 569.23Q1890.81 561.32 1866.11 561.32Q1841.02 561.32 1822.68 569.04Q1804.35 576.76 1792.77 589.11Q1781.19 601.46 1775.79 615.74L1682.76 596.83Q1695.5 558.62 1722.13 533.72Q1748.77 508.83 1785.63 496.47Q1822.49 484.12 1865.72 484.12Q1896.21 484.12 1927.29 491.26Q1958.36 498.4 1984.22 515.39Q2010.08 532.37 2025.9 560.93Q2041.73 589.5 2041.73 632.73V921.06H1945.62V861.62H1941.76Q1932.11 879.76 1915.32 895.39Q1898.53 911.02 1873.63 920.48Q1848.74 929.94 1814.77 929.94ZM1840.63 855.44Q1871.9 855.44 1894.48 843.09Q1917.06 830.74 1929.6 810.47Q1942.15 790.21 1942.15 766.28V715.33Q1937.13 719.19 1925.36 722.66Q1913.58 726.14 1899.11 728.84Q1884.63 731.54 1870.55 733.47Q1856.46 735.4 1846.81 736.56Q1824.42 739.65 1806.28 746.59Q1788.14 753.54 1777.91 766.09Q1767.68 778.63 1767.68 798.7Q1767.68 817.23 1777.14 829.77Q1786.59 842.32 1803 848.88Q1819.4 855.44 1840.63 855.44Z M2347.82 489.53V568.27H2102.72V489.53ZM2164.09 386.85H2264.44V799.47Q2264.44 823.02 2274.48 834.02Q2284.52 845.02 2307.29 845.02Q2314.24 845.02 2325.62 843.28Q2337.01 841.55 2343.96 840L2359.78 917.59Q2343.19 922.6 2325.82 924.73Q2308.45 926.85 2292.62 926.85Q2230.48 926.85 2197.28 895.97Q2164.09 865.09 2164.09 807.97Z M2547.76 929.94Q2506.84 929.94 2474.04 915.08Q2441.23 900.22 2422.31 871.27Q2403.4 842.32 2403.4 799.86Q2403.4 763.19 2417.1 739.26Q2430.8 715.33 2454.16 701.05Q2477.51 686.77 2506.84 679.43Q2536.18 672.1 2567.83 669.01Q2605.27 664.76 2628.82 661.68Q2652.36 658.59 2663.36 651.64Q2674.36 644.69 2674.36 630.03V628.1Q2674.36 606.87 2665.87 592.01Q2657.38 577.15 2640.59 569.23Q2623.8 561.32 2599.09 561.32Q2574.01 561.32 2555.67 569.04Q2537.34 576.76 2525.76 589.11Q2514.18 601.46 2508.77 615.74L2415.75 596.83Q2428.49 558.62 2455.12 533.72Q2481.75 508.83 2518.62 496.47Q2555.48 484.12 2598.71 484.12Q2629.2 484.12 2660.27 491.26Q2691.35 498.4 2717.21 515.39Q2743.07 532.37 2758.89 560.93Q2774.72 589.5 2774.72 632.73V921.06H2678.61V861.62H2674.75Q2665.1 879.76 2648.31 895.39Q2631.52 911.02 2606.62 920.48Q2581.73 929.94 2547.76 929.94ZM2573.62 855.44Q2604.88 855.44 2627.46 843.09Q2650.05 830.74 2662.59 810.47Q2675.13 790.21 2675.13 766.28V715.33Q2670.12 719.19 2658.34 722.66Q2646.57 726.14 2632.1 728.84Q2617.62 731.54 2603.53 733.47Q2589.45 735.4 2579.8 736.56Q2557.41 739.65 2539.27 746.59Q2521.13 753.54 2510.9 766.09Q2500.67 778.63 2500.67 798.7Q2500.67 817.23 2510.12 829.77Q2519.58 842.32 2535.99 848.88Q2552.39 855.44 2573.62 855.44Z M3003.61 921.06 2843.04 489.53H2950.34L3029.08 724.21Q3042.98 765.51 3053.02 807.19Q3063.05 848.88 3073.47 891.73H3048.38Q3059.19 848.88 3069.03 807.19Q3078.88 765.51 3092.39 724.21L3170.74 489.53H3277.27L3115.93 921.06Z M3535.88 929.94Q3470.65 929.94 3423.76 902.53Q3376.86 875.13 3351.58 825.34Q3326.29 775.54 3326.29 708Q3326.29 641.22 3351.19 591.04Q3376.09 540.86 3421.83 512.49Q3467.56 484.12 3529.32 484.12Q3568.69 484.12 3604.4 496.86Q3640.1 509.6 3667.7 536.23Q3695.3 562.86 3710.93 603.97Q3726.56 645.08 3726.56 701.82V733.47H3373.77V665.15H3676.77L3629.68 685.22Q3629.68 648.94 3618.49 621.34Q3607.29 593.74 3585.1 578.3Q3562.9 562.86 3529.71 562.86Q3496.51 562.86 3473.35 578.5Q3450.2 594.13 3438.04 620.18Q3425.88 646.24 3425.88 678.27V725.36Q3425.88 766.28 3439.77 794.46Q3453.67 822.63 3478.76 836.91Q3503.85 851.2 3537.04 851.2Q3559.04 851.2 3576.99 844.83Q3594.94 838.46 3608.06 825.91Q3621.19 813.37 3627.75 795.23L3720 814.14Q3709.58 848.88 3684.49 874.93Q3659.4 900.99 3621.77 915.46Q3584.13 929.94 3535.88 929.94Z M3812.64 921.06V489.53H3909.91V561.71H3914.54Q3926.12 524.27 3955.07 504Q3984.01 483.74 4021.07 483.74Q4029.56 483.74 4039.98 484.51Q4050.4 485.28 4057.74 486.44V578.69Q4051.56 576.76 4037.67 575.22Q4023.77 573.67 4010.26 573.67Q3982.47 573.67 3960.28 585.64Q3938.08 597.6 3925.54 618.64Q3912.99 639.68 3912.99 667.08V921.06Z M4218.31 785.19V663.61H4234.13L4389.69 489.53H4507.41L4316.74 702.21H4295.89ZM4126.44 921.06V345.94H4226.8V921.06ZM4397.02 921.06 4255.75 724.59 4323.68 653.57 4517.45 921.06Z M4767.18 929.94Q4701.95 929.94 4655.05 902.53Q4608.15 875.13 4582.87 825.34Q4557.59 775.54 4557.59 708Q4557.59 641.22 4582.49 591.04Q4607.38 540.86 4653.12 512.49Q4698.86 484.12 4760.62 484.12Q4799.99 484.12 4835.69 496.86Q4871.4 509.6 4899 536.23Q4926.59 562.86 4942.23 603.97Q4957.86 645.08 4957.86 701.82V733.47H4605.07V665.15H4908.07L4860.98 685.22Q4860.98 648.94 4849.78 621.34Q4838.59 593.74 4816.39 578.3Q4794.2 562.86 4761.01 562.86Q4727.81 562.86 4704.65 578.5Q4681.49 594.13 4669.33 620.18Q4657.18 646.24 4657.18 678.27V725.36Q4657.18 766.28 4671.07 794.46Q4684.97 822.63 4710.06 836.91Q4735.14 851.2 4768.34 851.2Q4790.34 851.2 4808.29 844.83Q4826.24 838.46 4839.36 825.91Q4852.48 813.37 4859.05 795.23L4951.3 814.14Q4940.88 848.88 4915.79 874.93Q4890.7 900.99 4853.06 915.46Q4815.43 929.94 4767.18 929.94Z M5243.49 489.53V568.27H4998.39V489.53ZM5059.76 386.85H5160.12V799.47Q5160.12 823.02 5170.15 834.02Q5180.19 845.02 5202.96 845.02Q5209.91 845.02 5221.29 843.28Q5232.68 841.55 5239.63 840L5255.45 917.59Q5238.86 922.6 5221.49 924.73Q5204.12 926.85 5188.29 926.85Q5126.15 926.85 5092.95 895.97Q5059.76 865.09 5059.76 807.97Z"/>
+        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 848 1167" fill="currentColor" class="dvk-brand-mark" role="img">
+          <title>Dataverket</title>
+          <path d="M89 120H249V250H349V120H499V250H599V120H759V617H89Z"/><rect x="29" y="663" width="791" height="196" rx="48"/><rect x="29" y="951" width="791" height="196" rx="48"/>
+        </svg>
+      </a>
+    </div>
+
+    <div class="duo">
+      <div>
+        <h3>glyph, on light</h3>
+        <div data-color-scheme="light" class="plate plate--light plate--small">
+          <figure><div class="box"><img src="build/glyph-light.svg" alt="" height="24"></div><figcaption>24</figcaption></figure>
+          <figure><div class="box"><img src="build/glyph-light.svg" alt="" height="16"></div><figcaption>16</figcaption></figure>
+          <figure>
+            <div class="box"><span class="tab"><img src="build/glyph.svg" alt="" width="16" height="16">Dataverket</span></div>
+            <figcaption>favicon</figcaption>
+          </figure>
+        </div>
+      </div>
+      <div>
+        <h3>glyph, on dark</h3>
+        <div data-color-scheme="dark" class="plate plate--dark plate--small">
+          <figure><div class="box"><img src="build/glyph-dark.svg" alt="" height="24"></div><figcaption>24</figcaption></figure>
+          <figure><div class="box"><img src="build/glyph-dark.svg" alt="" height="16"></div><figcaption>16</figcaption></figure>
+        </div>
       </div>
     </div>
   </section>
 
-  <section>
+  <!-- =========================================================== colour -->
+  <section id="colour">
     <h2 class="ds-heading" data-size="sm">Colour</h2>
+    <p class="ds-paragraph" data-size="sm">
+      Resolved values, read from the generated theme at load.
+      <b>The page background is always
+      <code class="dvk-mono">--ds-color-neutral-background-default</code></b>,
+      whatever <code class="dvk-mono">data-color</code> is active. Every other
+      <code class="dvk-mono">*-background-default</code> is the background for a
+      region painted in that colour &mdash; not the page. A dashed outline marks
+      a swatch whose value is <em>identical</em> to the page background, which in
+      light mode is most of them, because white is white. In dark mode they part
+      company: accent resolves to a navy-tinted dark, neutral to a plain one.
+      <code class="dvk-mono">border-*</code> swatches are drawn as a thick border
+      rather than a fill, since that is how you will use them.
+    </p>
     <div class="swatches" id="swatches"></div>
   </section>
 
-  <section>
+  <!-- ============================================================= type -->
+  <section id="type">
     <h2 class="ds-heading" data-size="sm">Type</h2>
-    <p class="ds-heading" data-size="xl">Sovereign cloud for everyone</p>
-    <p class="ds-paragraph">Body text in Inter. Note the tail on lowercase l: <b>ll11</b></p>
-    <p class="dvk-mono">cluster-prod-01 &middot; 10.42.0.0/16 &middot; sha256:7f3a9c &middot; 4m32s</p>
+    <div class="stack">
+      <p class="ds-heading" data-size="2xl">Heading 2xl</p>
+      <p class="ds-heading" data-size="lg">Heading lg</p>
+      <p class="ds-heading" data-size="xs">Heading xs</p>
+      <p class="ds-paragraph" data-size="lg">Paragraph lg. Note the tail on lowercase l: <b>ll11</b></p>
+      <p class="ds-paragraph">Paragraph md, the body default.</p>
+      <p class="ds-paragraph" data-size="sm">Paragraph sm, for secondary detail.</p>
+      <p class="dvk-mono">cluster-prod-01 &nbsp; 10.42.0.0/16 &nbsp; sha256:7f3a9c &nbsp; 4m32s</p>
+      <p><a class="ds-link" href="#none">A link</a> and <a class="ds-link" data-color="neutral" href="#none">a neutral link</a>.</p>
+      <ul class="ds-list"><li>List item one</li><li>List item two</li></ul>
+      <hr class="ds-divider">
+    </div>
   </section>
 
-  <section>
+  <!-- ========================================================== buttons -->
+  <section id="buttons">
     <h2 class="ds-heading" data-size="sm">Buttons</h2>
+    <h3>variants</h3>
     <div class="row">
       <button class="ds-button">Create cluster</button>
       <button class="ds-button" data-variant="secondary">Cancel</button>
       <button class="ds-button" data-variant="tertiary">Details</button>
+      <button class="ds-button" disabled>Disabled</button>
+    </div>
+    <h3>colours</h3>
+    <div class="row">
       <button class="ds-button" data-color="danger">Delete node</button>
+      <button class="ds-button" data-color="success">Approve</button>
+      <button class="ds-button" data-color="neutral" data-variant="secondary">Neutral</button>
+      <button class="ds-button" data-color="brand1" data-variant="tertiary">brand1 (identity only)</button>
+    </div>
+    <h3>sizes</h3>
+    <div class="row row--end">
+      <button class="ds-button" data-size="sm">sm</button>
+      <button class="ds-button" data-size="md">md</button>
+      <button class="ds-button" data-size="lg">lg</button>
     </div>
   </section>
 
-  <section>
-    <h2 class="ds-heading" data-size="sm">Tags</h2>
+  <!-- ==================================================== status, chips -->
+  <section id="status">
+    <h2 class="ds-heading" data-size="sm">Status and selection</h2>
+    <h3>tag</h3>
     <div class="row">
       <span class="ds-tag" data-color="success">Ready</span>
       <span class="ds-tag" data-color="warning">Draining</span>
       <span class="ds-tag" data-color="danger">Unreachable</span>
+      <span class="ds-tag" data-color="info">Provisioning</span>
       <span class="ds-tag" data-variant="outline" data-color="neutral">Unknown</span>
+    </div>
+    <h3>badge</h3>
+    <div class="row">
+      <span class="ds-badge" data-count="3"></span>
+      <span class="ds-badge" data-count="12" data-color="danger"></span>
+      <span class="ds-badge" data-variant="tinted" data-count="7"></span>
+    </div>
+    <h3>chip</h3>
+    <div class="row">
+      <button class="ds-chip" type="button">All</button>
+      <button class="ds-chip" type="button" data-removable="true">k8s</button>
+      <label class="ds-chip"><input class="ds-input" type="checkbox" checked>Ready</label>
+      <label class="ds-chip"><input class="ds-input" type="checkbox">Draining</label>
+    </div>
+    <h3>avatar and avatar stack</h3>
+    <div class="row">
+      <span class="ds-avatar" data-size="sm" aria-label="JB">JB</span>
+      <span class="ds-avatar" data-size="md" data-color="accent" aria-label="Operator"></span>
+      <ul class="ds-avatar-stack">
+        <li><span class="ds-avatar" aria-label="JB">JB</span></li>
+        <li><span class="ds-avatar" aria-label="AS">AS</span></li>
+        <li><span class="ds-avatar" aria-label="MK">MK</span></li>
+      </ul>
     </div>
   </section>
 
-  <section>
-    <h2 class="ds-heading" data-size="sm">Field</h2>
-    <ds-field class="ds-field" style="max-width: 24rem">
-      <label for="n">Cluster name</label>
-      <p data-field="description">Lowercase letters, digits and hyphens.</p>
-      <input class="ds-input" id="n" value="prod 01" aria-invalid="true">
-      <p data-field="validation" class="ds-validation-message">Spaces are not allowed.</p>
-    </ds-field>
+  <!-- =========================================================== fields -->
+  <section id="fields">
+    <h2 class="ds-heading" data-size="sm">Fields</h2>
+    <div class="stack" style="max-width: 28rem">
+      <ds-field class="ds-field">
+        <label for="n">Cluster name</label>
+        <p data-field="description">Lowercase letters, digits and hyphens.</p>
+        <input class="ds-input" id="n" value="prod 01" aria-invalid="true">
+        <p data-field="validation" class="ds-validation-message">Spaces are not allowed.</p>
+      </ds-field>
+
+      <ds-field class="ds-field">
+        <label for="cidr">Pod CIDR</label>
+        <input class="ds-input dvk-mono" id="cidr" value="10.42.0.0/16">
+      </ds-field>
+
+      <ds-field class="ds-field">
+        <label for="region">Region</label>
+        <select class="ds-input" id="region">
+          <option>bergen-1</option><option>oslo-1</option>
+        </select>
+      </ds-field>
+
+      <ds-field class="ds-field">
+        <label for="notes">Notes</label>
+        <textarea class="ds-input" id="notes" rows="3"></textarea>
+      </ds-field>
+
+      <fieldset class="ds-fieldset">
+        <legend>Node role</legend>
+        <ds-field class="ds-field">
+          <input class="ds-input" type="radio" name="role" value="cp" checked>
+          <label>Control plane</label>
+        </ds-field>
+        <ds-field class="ds-field">
+          <input class="ds-input" type="radio" name="role" value="worker">
+          <label>Worker</label>
+          <p data-field="description">Runs workloads only.</p>
+        </ds-field>
+      </fieldset>
+
+      <ds-field class="ds-field">
+        <input class="ds-input" type="checkbox" id="drain" checked>
+        <label for="drain">Drain before delete</label>
+      </ds-field>
+
+      <fieldset class="ds-togglegroup" focusgroup="radiogroup" aria-label="View">
+        <label class="ds-button"><input type="radio" name="view" value="list" checked>List</label>
+        <label class="ds-button"><input type="radio" name="view" value="grid">Grid</label>
+      </fieldset>
+
+      <label class="ds-label" for="q">Standalone label (ds-label)</label>
+      <ds-suggestion class="ds-suggestion">
+        <input class="ds-input" id="q" type="search" aria-label="Find node" placeholder="Find node">
+        <button type="reset" class="ds-button" data-variant="tertiary" aria-label="Clear"></button>
+        <datalist>
+          <option>node-1</option><option>node-2</option><option>node-3</option>
+        </datalist>
+      </ds-suggestion>
+
+      <!-- ds-search is the same component with the magnifier and a submit. -->
+      <ds-suggestion class="ds-search">
+        <input class="ds-input" type="search" aria-label="Search" placeholder="Search">
+        <button class="ds-button" data-variant="secondary" type="submit">Search</button>
+      </ds-suggestion>
+
+      <div class="ds-file-upload">
+        <input type="file" id="kubeconfig" multiple>
+        <label for="kubeconfig">Drop a kubeconfig here, or browse</label>
+      </div>
+    </div>
   </section>
 
-  <section>
-    <h2 class="ds-heading" data-size="sm">Table</h2>
+  <!-- ========================================================== surfaces -->
+  <section id="surfaces">
+    <h2 class="ds-heading" data-size="sm">Surfaces</h2>
+    <h3>card</h3>
+    <div class="row" style="align-items: stretch">
+      <div class="ds-card" style="flex:1 1 16rem">
+        <h4 class="ds-heading" data-size="xs">Object storage</h4>
+        <p class="ds-paragraph" data-size="sm">4 buckets, 1.2 TiB used</p>
+      </div>
+      <div class="ds-card" data-variant="tinted" style="flex:1 1 16rem">
+        <h4 class="ds-heading" data-size="xs">Scheduled</h4>
+        <p class="ds-paragraph" data-size="sm">Nothing scheduled.</p>
+      </div>
+    </div>
+
+    <h3>alert</h3>
+    <div class="stack">
+      <div class="ds-alert" data-color="danger" role="alert">
+        <p class="ds-paragraph">Couldn't reach <span class="dvk-mono">node-3</span> - last seen 4 m ago.</p>
+      </div>
+      <div class="ds-alert" data-color="info">
+        <p class="ds-paragraph">Upgrade window opens 02:00 UTC.</p>
+      </div>
+    </div>
+
+    <h3>details</h3>
+    <details class="ds-details">
+      <summary>Show kubeconfig</summary>
+      <div class="dvk-mono">apiVersion: v1<br>clusters: []</div>
+    </details>
+
+    <h3>table</h3>
     <table class="ds-table" data-zebra data-hover>
       <thead><tr><th>Name</th><th>Address</th><th>Status</th></tr></thead>
       <tbody>
@@ -116,10 +400,95 @@
     </table>
   </section>
 
-  <section>
-    <h2 class="ds-heading" data-size="sm">Alert</h2>
-    <div class="ds-alert" data-color="danger" role="alert">
-      <p class="ds-paragraph">Couldn't reach <span class="dvk-mono">node-3</span> - last seen 4 m ago.</p>
+  <!-- ======================================================== navigation -->
+  <section id="nav">
+    <h2 class="ds-heading" data-size="sm">Navigation</h2>
+
+    <h3>breadcrumbs</h3>
+    <ds-breadcrumbs class="ds-breadcrumbs">
+      <a href="#none" aria-label="Back to Clusters" class="ds-link">Clusters</a>
+      <ol>
+        <li><a href="#none" class="ds-link">Home</a></li>
+        <li><a href="#none" class="ds-link">Clusters</a></li>
+        <li><a href="#none" class="ds-link">prod-01</a></li>
+      </ol>
+    </ds-breadcrumbs>
+
+    <h3>tabs</h3>
+    <ds-tabs class="ds-tabs">
+      <ds-tablist>
+        <ds-tab>Overview</ds-tab><ds-tab>Nodes</ds-tab><ds-tab>Events</ds-tab>
+      </ds-tablist>
+      <ds-tabpanel>3 of 5 nodes ready.</ds-tabpanel>
+      <ds-tabpanel>Node list.</ds-tabpanel>
+      <ds-tabpanel>Event log.</ds-tabpanel>
+    </ds-tabs>
+
+    <h3>pagination</h3>
+    <!-- The component fills in the numbers from data-href/current/total. The
+         <li><a> stubs are the slots it writes into. -->
+    <ds-pagination class="ds-pagination" aria-label="Pages"
+                   data-href="?page=%d" data-current="2" data-total="5">
+      <ol>
+        <li><a class="ds-button" href="#none"></a></li>
+        <li><a class="ds-button" href="#none"></a></li>
+        <li><a class="ds-button" href="#none"></a></li>
+        <li><a class="ds-button" href="#none"></a></li>
+        <li><a class="ds-button" href="#none"></a></li>
+        <li><a class="ds-button" href="#none"></a></li>
+        <li><a class="ds-button" href="#none"></a></li>
+      </ol>
+    </ds-pagination>
+  </section>
+
+  <!-- ========================================================== overlays -->
+  <section id="overlays">
+    <h2 class="ds-heading" data-size="sm">Overlays and feedback</h2>
+    <div class="row">
+      <button class="ds-button" type="button" command="show-modal" commandfor="drawer">Open drawer</button>
+      <dialog id="drawer" class="ds-dialog" data-placement="right" closedby="any">
+        <h2 class="ds-heading" data-size="sm">Create cluster</h2>
+        <ds-field class="ds-field">
+          <label for="dn">Name</label>
+          <input class="ds-input" id="dn">
+        </ds-field>
+        <button class="ds-button" command="close" commandfor="drawer">Close</button>
+      </dialog>
+
+      <button class="ds-button" data-variant="secondary" popovertarget="menu">Actions</button>
+      <div id="menu" class="ds-dropdown" popover>
+        <ul>
+          <li><button class="ds-button" data-variant="tertiary" type="button">Drain</button></li>
+          <li><button class="ds-button" data-variant="tertiary" type="button">Cordon</button></li>
+          <li><button class="ds-button" data-variant="tertiary" type="button">Reboot</button></li>
+        </ul>
+      </div>
+
+      <button class="ds-button" data-variant="secondary" popovertarget="pop">Popover</button>
+      <div id="pop" class="ds-popover" popover data-placement="top">Some popover content.</div>
+
+      <button class="ds-button" data-variant="tertiary" data-tooltip="Refreshes every 10 s">Hover me</button>
+    </div>
+
+    <h3>error summary</h3>
+    <ds-error-summary class="ds-error-summary">
+      <h2>Fix these before continuing</h2>
+      <ul>
+        <li><a href="#n" class="ds-link">Cluster name cannot contain spaces</a></li>
+        <li><a href="#cidr" class="ds-link">Pod CIDR overlaps the service range</a></li>
+      </ul>
+    </ds-error-summary>
+
+    <h3>spinner and skeleton</h3>
+    <div class="row">
+      <svg class="ds-spinner" data-size="sm" viewBox="0 0 50 50" role="img" aria-label="Loading">
+        <circle class="ds-spinner__background" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+        <circle class="ds-spinner__circle" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+      </svg>
+      <div style="flex: 1 1 18rem" class="stack">
+        <div class="ds-skeleton" data-variant="text" style="width: 60%"></div>
+        <div class="ds-skeleton" data-variant="text"></div>
+      </div>
     </div>
   </section>
 
@@ -127,28 +496,70 @@
 
 <script type="module">
   const root = document.documentElement;
-  document.getElementById('scheme').onclick = () => {
-    root.dataset.colorScheme = root.dataset.colorScheme === 'dark' ? 'light' : 'dark';
-  };
 
-  // Reads the actual token values out of the generated theme, so this sheet
-  // can never drift out of sync with the CSS.
+  // light -> dark -> auto. auto is what layout.html ships with, so the sheet
+  // has to be able to sit in it.
+  const schemes = ['light', 'dark', 'auto'];
+  const btn = document.getElementById('scheme');
+  btn.onclick = () => {
+    const next = schemes[(schemes.indexOf(root.dataset.colorScheme) + 1) % schemes.length];
+    root.dataset.colorScheme = next;
+    btn.textContent = `Colour scheme: ${next}`;
+    btn.setAttribute('aria-pressed', String(next !== 'light'));
+    paint();
+  };
+  document.getElementById('size').onchange = (e) => { root.dataset.size = e.target.value; };
+
+  // Swatches read their resolved value back out of the theme, so the sheet
+  // can never drift from the CSS - and so an invisible swatch (white on
+  // white) still states what it is.
   const groups = ['accent', 'brand1', 'neutral', 'success', 'warning', 'danger', 'info'];
-  const variants = ['background-default', 'surface-tinted', 'border-subtle', 'base-default', 'text-default'];
+  const variants = ['background-default', 'background-tinted', 'surface-default', 'surface-tinted',
+                    'border-subtle', 'border-default', 'base-default', 'text-subtle', 'text-default'];
   const box = document.getElementById('swatches');
-  for (const g of groups) {
-    for (const v of variants) {
-      const el = document.createElement('div');
-      el.className = 'swatch';
-      el.style.background = `var(--ds-color-${g}-${v})`;
-      el.style.color = v.startsWith('base')
-        ? `var(--ds-color-${g}-base-contrast-default)`
-        : `var(--ds-color-${g}-text-default)`;
-      el.style.border = '1px solid var(--ds-color-neutral-border-subtle)';
-      el.textContent = `${g} ${v}`;
-      box.append(el);
+
+  function paint() {
+    box.replaceChildren();
+    const cs = getComputedStyle(root);
+    const pageBg = cs.getPropertyValue('--ds-color-neutral-background-default').trim().toLowerCase();
+
+    for (const g of groups) {
+      for (const v of variants) {
+        const token = `--ds-color-${g}-${v}`;
+        const value = cs.getPropertyValue(token).trim();
+        const el = document.createElement('div');
+        el.className = 'swatch';
+
+        if (v.startsWith('border')) {
+          // Shown as a border, because that is what it is for. A 1px sample
+          // on white is not something you can judge.
+          el.style.background = `var(--ds-color-${g}-background-default)`;
+          el.style.color = `var(--ds-color-${g}-text-default)`;
+          el.style.border = `4px solid var(${token})`;
+        } else if (v.startsWith('base')) {
+          el.style.background = `var(${token})`;
+          el.style.color = `var(--ds-color-${g}-base-contrast-default)`;
+          el.style.borderColor = 'transparent';
+        } else if (v.startsWith('text')) {
+          el.style.background = `var(--ds-color-${g}-background-default)`;
+          el.style.color = `var(${token})`;
+        } else {
+          el.style.background = `var(${token})`;
+          el.style.color = `var(--ds-color-${g}-text-default)`;
+        }
+
+        // Only fills can be "the same colour as the page".
+        const isFill = !v.startsWith('border') && !v.startsWith('text');
+        if (isFill && value.toLowerCase() === pageBg) el.classList.add('swatch--pagebg');
+        if (g === 'neutral' && v === 'background-default') el.classList.add('swatch--page');
+
+        el.innerHTML = `<b>${g}</b><span>${v}</span><code>${value || '-'}</code>`;
+        box.append(el);
+      }
     }
   }
+
+  paint();
 </script>
 </body>
 </html>
