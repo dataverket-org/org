@@ -1,9 +1,8 @@
 # Copied out of the image by `task build`, alongside the committed build/.
 vendor/
 
-# go-task checksum cache, and check's scratch copy.
+# go-task's checksum cache, and check's scratch copy under it.
 .task/
-.check/
 
 # Editor swap files.
 .*.sw[a-p]

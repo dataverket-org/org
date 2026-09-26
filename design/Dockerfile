@@ -33,7 +33,7 @@ RUN npm install -g --no-fund --no-audit \
       "http-server@${HTTP_SERVER_VERSION}"
 
 # fontkit reads the WOFF2 and cuts the wordmark to outlines. ESM ignores
-# NODE_PATH, so logo.mjs reaches it through createRequire, which does not.
+# NODE_PATH, so logo.js reaches it through createRequire, which does not.
 RUN mkdir -p /opt/tools && cd /opt/tools \
  && npm init -y >/dev/null \
  && npm install --no-fund --no-audit --silent "fontkit@${FONTKIT_VERSION}"
@@ -80,8 +80,8 @@ RUN designsystemet tokens create --clean \
  && mkdir -p build \
  && cp design-tokens-build/dataverket.css build/theme.css
 
-COPY logo.mjs ./
-RUN node logo.mjs
+COPY logo.js ./
+RUN node logo.js
 
 # ---------------------------------------------------------------- serve ---
 FROM tools AS serve

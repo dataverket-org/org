@@ -1,29 +1,11 @@
-# Everything design/ generates.
+# Requires podman (or docker) and go-task.
 #
-# You need podman (or docker) and go-task. Nothing else: no Node on your
-# machine, no Python. The build itself lives in the Dockerfile and runs in
-# image layers - nothing is bind-mounted, so there is no :z for SELinux, no
-# --user to stop output being root-owned, and no mount semantics to differ
-# between macOS, Linux and rootless. `task build` runs the image build and
-# copies the results out.
-#
-#   task            list the targets
-#   task build      build the image and copy build/ and vendor/ out of it
-#   task preview    serve the built site from the image
-#   task check      fail if the committed build/ is out of sync with the sources
-#   task clean      remove what `task build` produced
-#
-# Two directories come out, and the split is the whole filing system:
-#
-#   build/   what we generate from our own sources - theme.css from
-#            designsystemet.config.json, the mark SVGs from logo.mjs.
-#            Committed, so a consumer needs no toolchain at all.
-#   vendor/  third-party, fetched verbatim. Not committed.
+#   build/   generated from our sources, committed
+#   vendor/  third-party, fetched, not committed
 version: '3'
 
 vars:
-  # Bump a version, then `task image:rebuild`. DS_VERSION also names the image
-  # tag, so bumping that one rebuilds on its own.
+  # Bump, then `task image:rebuild`. DS_VERSION names the image tag.
   DS_VERSION: '1.23.0'
   ESBUILD_VERSION: '0.24.0'
   FONTKIT_VERSION: '2.0.4'
@@ -33,7 +15,7 @@ vars:
 
   IMAGE: 'dataverket-design:{{.DS_VERSION}}'
 
-  # podman first, docker if podman is missing. CONTAINER_BIN in the env wins.
+  # CONTAINER_BIN in the env wins.
   CONTAINER_BIN:
     sh: |
       for c in "$CONTAINER_BIN" podman docker; do
@@ -43,23 +25,20 @@ vars:
 
 tasks:
   default:
-    # No target given means "what can I run here", not "rebuild everything".
     silent: true
     cmds:
       - task --list
 
   image:
     desc: Build the toolchain image, which also runs the build
-    # Both checks are needed. `sources` alone skips the build when the image
-    # has been deleted but the files have not changed; `status` alone never
-    # rebuilds after a source edit.
+    # status covers a deleted image, sources covers an edited file.
     status:
       - '{{.CONTAINER_BIN}} image exists {{.IMAGE}}'
     sources:
       - Dockerfile
       - fonts.sh
       - designsystemet.config.json
-      - logo.mjs
+      - logo.js
       - dataverket.css
       - preview.html
     cmd: >-
@@ -92,10 +71,8 @@ tasks:
 
   copy-out:
     internal: true
-    # `podman cp` needs a container, not an image, so one is created and thrown
-    # away without ever running. It is also the only extraction that works
-    # everywhere: `build --output type=local` is unsupported in podman's remote
-    # mode, which is what macOS uses.
+    # create + cp + rm, not `build --output`: that is unsupported in podman
+    # remote mode, which is what macOS uses.
     cmds:
       - rm -rf "{{.TASKFILE_DIR}}/{{.DEST}}"
       - |
@@ -104,35 +81,34 @@ tasks:
         {{.CONTAINER_BIN}} rm "$cid" >/dev/null
 
   preview:
-    desc: Serve the built site from the image
-    # Fails fast rather than quietly building for half a minute.
-    preconditions:
-      - sh: '{{.CONTAINER_BIN}} image exists {{.IMAGE}}'
-        msg: no image yet - run `task build` first
+    desc: Serve the site from the image, with the working copy mounted
+    # deps, not preconditions: deps run first, so a precondition never fires.
+    # Read-only mount over /site; the host layout matches it.
+    # The image as built:  podman run --rm -p 8123:8123 <IMAGE>
+    deps: [build]
     cmds:
       - '{{if eq OS "darwin"}}open{{else}}xdg-open{{end}} http://localhost:8123/preview.html &'
-      - '{{.CONTAINER_BIN}} run --rm -p 8123:8123 {{.IMAGE}}'
+      - >-
+        {{.CONTAINER_BIN}} run --rm -p 8123:8123
+        -v "{{.TASKFILE_DIR}}:/site:ro"
+        {{.IMAGE}}
 
   check:
     desc: Fail if the committed build/ is out of sync with the sources
-    # Rebuilds from the sources and diffs against what is committed. It does
-    # not trust the layer cache for this: --no-cache on the generate stages
-    # would be slow, so the image task's `sources` fingerprint is relied on to
-    # rebuild when anything it reads has changed.
+    # Scratch goes under .task/, not build/: `diff -r` would recurse into it.
+    # TASK_TEMP_DIR moves go-task's cache but not this copy.
     deps: [image]
     cmds:
       - task: copy-out
-        vars: {SRC: build, DEST: .check}
-      - cmd: diff -r "{{.TASKFILE_DIR}}/.check" "{{.TASKFILE_DIR}}/build"
+        vars: {SRC: build, DEST: .task/check}
+      - cmd: diff -r "{{.TASKFILE_DIR}}/.task/check" "{{.TASKFILE_DIR}}/build"
         msg: build/ is out of sync with the sources, run `task build` and commit the result
-      - rm -rf "{{.TASKFILE_DIR}}/.check"
+      - rm -rf "{{.TASKFILE_DIR}}/.task/check"
 
   clean:
     desc: Remove what `task build` produced
-    # vendor/ is fetched and gitignored; build/ is committed, so it survives.
-    # `task clean:all` drops that too, and the image goes with `task image:rm`.
     cmds:
-      - rm -rf vendor .task .check
+      - rm -rf vendor .task
 
   clean:all:
     desc: Clean, and drop the committed build/ as well (back to sources only)

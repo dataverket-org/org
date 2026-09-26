@@ -36,6 +36,40 @@
     font-variant-ligatures: none;
   }
 
+  /* Inline SVGs, not <img>: CSS cannot reach inside one. ds-focus on the <a>.
+   *
+   *   <a class="dvk-brand ds-focus" href="/">
+   *     <svg class="dvk-brand-lockup" ...>  logo + name
+   *     <svg class="dvk-brand-mark" ...>    logo alone
+   *   </a>
+   */
+  .dvk-brand {
+    align-items: center;
+    color: var(--ds-color-accent-text-default);
+    display: inline-flex;
+    text-decoration: none;
+  }
+
+  .dvk-brand > svg {
+    height: var(--dvk-brand-size, 32px);
+    width: auto;
+  }
+
+  /* Wide by default, logo alone when narrow. Same height, so nothing shifts. */
+  .dvk-brand > .dvk-brand-mark {
+    display: none;
+  }
+
+  @media (width < 30rem) {
+    .dvk-brand > .dvk-brand-lockup {
+      display: none;
+    }
+
+    .dvk-brand > .dvk-brand-mark {
+      display: block;
+    }
+  }
+
   /* htmx: dim the region being swapped while the request is in flight.
    * htmx sets .htmx-request on the element carrying hx-* (or hx-indicator),
    * so no JavaScript of ours is involved. */
