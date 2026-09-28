@@ -57,6 +57,10 @@ Load in this order:
 Layers make precedence independent of file order, but keep the order: anything
 unlayered you add later will depend on it.
 
+Designsystemet ships components and tokens only. Page layout - width,
+grid, the spacing between blocks - is yours to write, as designsystemet.no
+writes its own. `preview.html` carries its layout inline for that reason.
+
 See [`templates/layout.html`](templates/layout.html) for the head, and
 [`templates/`](templates/) for component and htmx patterns.
 
@@ -118,14 +122,25 @@ dataverket` after `ds`, so it wins without `!important`.
 
 | File | What it is |
 |---|---|
-| `logo-*.svg` | The tower. Holds down to 32 px. |
-| `glyph-*.svg` | The tower simplified. **24 px is the first size that takes it.** |
-| `lockup-*.svg` | The tower with "Dataverket" beside it. |
+| `logo-*.svg` | The master mark: the tower over two bars, on a tall 848 × 1269 canvas. **Use at 32 px rendered height and above.** |
+| `glyph-*.svg` | The tower simplified, on a square 1149 × 1149 canvas. **Use below 32 px, and for every square icon slot** - favicon, app icon, avatar - whatever its size. |
+| `wide-*.svg` | The master with "Dataverket" beside it. |
+
+**Vertical rhythm.** Tower-to-bar and bar-to-bar gaps are both 68 units on
+the 848-unit-wide grid. Do not alter the spacing when creating derivatives.
+The glyph carries the same gaps, centred in a square.
+
+**Never stretch.** Set one dimension and let the other follow. **Never place
+the tall master in a square slot without padding**; use the glyph.
+
+Rasters: rendered height 32 px and above from `logo-*`, below 32 px from
+`glyph-*`, every square icon (16, 32, 180, 192, 512) from the glyph. None are
+committed; the favicon is `glyph.svg`.
 
 The suffix names the **background** the file is for, not the colour of its ink
-- `logo-dark.svg` is the white one. `logo.svg`, `glyph.svg` and `lockup.svg`
-are the same shapes with `fill="currentColor"`, and carry the class and
-`<title>` they need when inlined.
+- `logo-dark.svg` is the white one. `logo.svg`, `glyph.svg` and `wide.svg`
+are the same shapes with `fill="currentColor"`. `logo.svg` and `wide.svg`
+carry the class the brand link needs when inlined; `glyph.svg` is the favicon.
 
 **Inline those and let them take the text colour.** CSS cannot reach inside an
 `<img>`, which is also why `fill="currentColor"` does nothing there. The
@@ -143,7 +158,7 @@ browser's thin default outline.
 
 ```html
 <a class="dvk-brand ds-focus" style="--dvk-brand-size: 32px" href="/">
-  <svg class="dvk-brand-lockup" ...>   <!-- tower + name, wide -->
+  <svg class="dvk-brand-wide" ...>   <!-- tower + name -->
   <svg class="dvk-brand-mark" ...>     <!-- tower alone, narrow -->
 </a>
 ```

@@ -39,7 +39,7 @@
   /* Inline SVGs, not <img>: CSS cannot reach inside one. ds-focus on the <a>.
    *
    *   <a class="dvk-brand ds-focus" href="/">
-   *     <svg class="dvk-brand-lockup" ...>  logo + name
+   *     <svg class="dvk-brand-wide" ...>  logo + name
    *     <svg class="dvk-brand-mark" ...>    logo alone
    *   </a>
    */
@@ -61,7 +61,7 @@
   }
 
   @media (width < 30rem) {
-    .dvk-brand > .dvk-brand-lockup {
+    .dvk-brand > .dvk-brand-wide {
       display: none;
     }
 

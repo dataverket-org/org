@@ -47,7 +47,7 @@
     {{/*
       The brand link, built the way designsystemet.no builds its own: two
       inline SVGs at one height, swapped with `display` at a breakpoint. The
-      wide lockup shows when there is room; the bare mark takes over when
+      wide one shows when there is room; the bare mark takes over when
       there is not.
 
       They must be INLINE. CSS cannot reach inside an <img>, which is also why
@@ -55,7 +55,7 @@
       generated files and printing them as template.HTML - do not paste the
       path data in here, or it will drift from build/:
 
-          //go:embed static/lockup.svg static/glyph.svg
+          //go:embed static/wide.svg static/logo.svg
           var marks embed.FS
 
           func mark(name string) (template.HTML, error) {
@@ -63,7 +63,7 @@
               return template.HTML(b), err
           }
 
-      Both files already carry the class they need (dvk-brand-lockup,
+      Both files already carry the class they need (dvk-brand-wide,
       dvk-brand-mark) and a <title>, so nothing has to be added after reading
       them.
 
@@ -72,8 +72,8 @@
     */}}
     <a class="dvk-brand ds-focus" style="--dvk-brand-size: 32px"
        href="/" aria-label="Dataverket, til forsiden">
-      {{.Marks.Lockup}}
-      {{.Marks.Glyph}}
+      {{.Marks.Wide}}
+      {{.Marks.Logo}}
     </a>
 
     {{block "nav" .}}{{end}}
