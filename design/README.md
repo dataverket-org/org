@@ -94,8 +94,9 @@ surfaces.
 
 - `accent` - navy. Primary actions, focus, links. Resolves to `#9facc0` in
   dark, because navy is unreadable against a dark surface.
-- `brand1` - flag red. **Identity only**: logo, editorial emphasis. Never a
-  button, never a status - it sits too close to `danger`.
+- `brand1` - flag red. Identity: plates, rules, editorial emphasis. **Never
+  on a component that also ships a `danger` variant** - button, tag, badge,
+  alert, error summary, field validation - the two reds are near-identical.
 
 Colour scheme is `data-color-scheme="light|dark|auto"` on `<html>`, colour per
 subtree is `data-color`, size is `data-size`. None of it needs JavaScript.

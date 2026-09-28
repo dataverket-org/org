@@ -36,8 +36,9 @@ component:
 - `data-color="accent | brand1 | neutral | success | warning | danger | info"`
 
 `accent` is Dataverket navy and is the primary action colour. `brand1` is flag
-red and is **identity only** - logo, editorial emphasis. Never a button, never
-a status: it sits too close to `danger`.
+red, for identity. **Never on a component that also ships a `danger` variant**
+- button, tag, badge, alert, error summary, field validation - the two reds
+are near-identical.
 
 ## Web components
 
