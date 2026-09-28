@@ -62,11 +62,11 @@
   .plate { padding: var(--ds-size-6); border-radius: var(--ds-border-radius-lg);
            display: flex; gap: var(--ds-size-6); align-items: center; flex-wrap: wrap; }
   /* Every mark is centred in a box as tall as the largest one, so the whole
-     ladder shares one centre line - the same axis the lockup aligns on. */
+     ladder shares one centre line - the same axis the wide one aligns on. */
   .plate figure > .box { display: grid; align-items: center; justify-items: center; }
   .plate--ladder figure > .box { height: 128px; }
   .plate--small figure > .box { height: 40px; }
-  .plate--lockup figure > .box { height: 64px; }
+  .plate--wide figure > .box { height: 64px; }
   /* Light and dark shown side by side, equal height, so the pair can be
      compared at a glance instead of by scrolling. Each column is a label
      over a plate; the 1fr row stretches the plate to the taller of the two.
@@ -111,11 +111,14 @@
     <h2 class="ds-heading" data-size="sm">The logo</h2>
     <p class="ds-paragraph" data-variant="long">
       The suffix names the <em>background</em> the file is for, not the colour
-      of its ink. <code class="dvk-mono">logo-*</code> is the full shape and
-      holds down to 32&nbsp;px. <b>24&nbsp;px is the first size that takes
-      <code class="dvk-mono">glyph-*</code></b>: below 32 the shoulders and the
-      doorway close up, and the simplified shape stays legible where the full
-      one turns to mush.
+      of its ink. <code class="dvk-mono">logo-*</code> is the master, on a tall
+      canvas, for anything rendered at 32&nbsp;px and above. <b>Below
+      32&nbsp;px <code class="dvk-mono">glyph-*</code> takes over</b>, and it fills
+      every square slot - favicon, app icon, avatar - whatever the size: small,
+      the shoulders and the doorway close up, and the simplified shape stays
+      legible where the full one turns to mush. Both keep one vertical rhythm,
+      68 units from tower to bar and from bar to bar, so nothing is retuned
+      per size.
     </p>
 
     <div class="duo">
@@ -148,17 +151,17 @@
     </p>
     <div class="duo">
       <div>
-        <h3 class="ds-heading" data-size="2xs">lockup, on light</h3>
-        <div data-color-scheme="light" class="plate plate--light plate--lockup">
-          <figure><div class="box"><img src="build/lockup-light.svg" alt="Dataverket" height="55"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">64</figcaption></figure>
-          <figure><div class="box"><img src="build/lockup-light.svg" alt="Dataverket" height="41"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">48</figcaption></figure>
+        <h3 class="ds-heading" data-size="2xs">wide, on light</h3>
+        <div data-color-scheme="light" class="plate plate--light plate--wide">
+          <figure><div class="box"><img src="build/wide-light.svg" alt="Dataverket" height="55"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">64</figcaption></figure>
+          <figure><div class="box"><img src="build/wide-light.svg" alt="Dataverket" height="41"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">48</figcaption></figure>
         </div>
       </div>
       <div>
-        <h3 class="ds-heading" data-size="2xs">lockup, on dark</h3>
-        <div data-color-scheme="dark" class="plate plate--dark plate--lockup">
-          <figure><div class="box"><img src="build/lockup-dark.svg" alt="Dataverket" height="55"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">64</figcaption></figure>
-          <figure><div class="box"><img src="build/lockup-dark.svg" alt="Dataverket" height="41"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">48</figcaption></figure>
+        <h3 class="ds-heading" data-size="2xs">wide, on dark</h3>
+        <div data-color-scheme="dark" class="plate plate--dark plate--wide">
+          <figure><div class="box"><img src="build/wide-dark.svg" alt="Dataverket" height="55"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">64</figcaption></figure>
+          <figure><div class="box"><img src="build/wide-dark.svg" alt="Dataverket" height="41"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">48</figcaption></figure>
         </div>
       </div>
     </div>
@@ -517,7 +520,7 @@
   const root = document.documentElement;
 
   // From build/, so it cannot drift from logo.js.
-  for (const file of ['lockup.svg', 'glyph.svg']) {
+  for (const file of ['wide.svg', 'logo.svg']) {
     const res = await fetch(`build/${file}`);
     document.getElementById('brand').insertAdjacentHTML('beforeend', await res.text());
   }

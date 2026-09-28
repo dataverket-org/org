@@ -27,17 +27,22 @@ const OUT = join(HERE, 'build');
 const FONT = join(HERE, 'vendor', 'fonts', 'files', 'inter-latin-600-normal.woff2');
 const WORD = 'Dataverket';
 
-// The tower, and the tower flattened for small sizes. Both sit in the same
-// 848x1167 box with the same ink bounds, so they swap without anything jumping.
+// The tower, and the tower flattened for small sizes. Same 848-wide grid.
+// Gaps tower-to-bar and bar-to-bar: 68 each (was 46/92). See README, "The logo".
 const TOWER = 'M89 120H249V250H349V120H499V250H599V120H759V280L699 380L710 617'
             + 'H476V517A52 52 0 0 0 372 517V617H138L149 380L89 280Z';
 const TOWER_FLAT = 'M89 120H249V250H349V120H499V250H599V120H759V617H89Z';
-const BARS = '<rect x="29" y="663" width="791" height="196" rx="48"/>'
-           + '<rect x="29" y="951" width="791" height="196" rx="48"/>';
+const BARS = '<rect x="29" y="685" width="791" height="196" rx="48"/>'
+           + '<rect x="29" y="949" width="791" height="196" rx="48"/>';
 
-const BOX = [0, 0, 848, 1167];        // the viewBox the tower alone is drawn in
-const INK = [29, 120, 820, 1147];     // what it actually covers: x0 y0 x1 y1
+const BOX = [0, 0, 848, 1269];        // viewBox of the tower alone, 120 padding top and bottom
+const INK = [29, 120, 820, 1145];     // what it actually covers: x0 y0 x1 y1
 const INK_H = INK[3] - INK[1];
+
+// Glyph: square canvas, for square slots (favicon, app icon, avatar) and below 32 px.
+// Mark centred on x, ~5% padding on y. Same drawing, translated.
+const GLYPH_BOX = [0, 0, 1149, 1149];
+const GLYPH_SHIFT = [(GLYPH_BOX[2] - (INK[2] - INK[0])) / 2 - INK[0], -60];   // 150, -60
 
 // Cap-height of the name as a fraction of the logo's ink height, and the gap
 // between them in the same unit. Reviewed by eye at 48 and 64 px: the rook is
@@ -105,9 +110,11 @@ function name() {
 mkdirSync(OUT, { recursive: true });
 
 console.log('logo');
-write('logo', BOX, `<path d="${TOWER}"/>${BARS}`, 'Dataverket');
+write('logo', BOX, `<path d="${TOWER}"/>${BARS}`, 'Dataverket', 'dvk-brand-mark');
 console.log('icon');
-write('glyph', BOX, `<path d="${TOWER_FLAT}"/>${BARS}`, 'Dataverket', 'dvk-brand-mark');
+write('glyph', GLYPH_BOX,
+      `<g transform="translate(${GLYPH_SHIFT.map(num).join(' ')})"><path d="${TOWER_FLAT}"/>${BARS}</g>`,
+      'Dataverket');
 console.log('logo with name');
 const [view, word] = name();
-write('lockup', view, `<path d="${TOWER}"/>${BARS}\n  ${word}`, 'Dataverket', 'dvk-brand-lockup');
+write('wide', view, `<path d="${TOWER}"/>${BARS}\n  ${word}`, 'Dataverket', 'dvk-brand-wide');
