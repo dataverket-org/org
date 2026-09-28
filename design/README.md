@@ -57,6 +57,10 @@ Load in this order:
 Layers make precedence independent of file order, but keep the order: anything
 unlayered you add later will depend on it.
 
+Designsystemet ships components and tokens only. Page layout - width,
+grid, the spacing between blocks - is yours to write, as designsystemet.no
+writes its own. `preview.html` carries its layout inline for that reason.
+
 See [`templates/layout.html`](templates/layout.html) for the head, and
 [`templates/`](templates/) for component and htmx patterns.
 
