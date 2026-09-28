@@ -51,6 +51,12 @@ RUN mkdir -p /opt/web && cd /opt/web \
 FROM tools AS generate
 WORKDIR /src
 
+# ARG does not cross a FROM. Without these the URLs below end in "-.tgz" and
+# the registry answers 404.
+ARG DS_VERSION
+ARG HTMX_VERSION
+ARG FONTSOURCE_VERSION
+
 # Third-party first: it changes least, so it caches best.
 #
 # The bundle must be built, not downloaded. Do NOT swap it for jsDelivr's

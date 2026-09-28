@@ -27,23 +27,35 @@
   /* For this sheet only. None of this belongs in dataverket.css. */
   body { margin: 0; padding: var(--ds-size-8); }
   section { scroll-margin-top: var(--ds-size-4); }
-  .sheet { display: grid; gap: var(--ds-size-12); max-width: 74rem; margin-inline: auto; }
+  .sheet { display: grid; gap: var(--ds-size-14); max-width: 74rem; margin-inline: auto; }
+
+  /* One vertical rhythm for the whole sheet, from the owl selector alone;
+     nothing in a section carries a margin of its own. Blocks sit
+     --ds-size-6 apart. A heading sits --ds-size-2 from what it labels and
+     --ds-size-6 from what came before, so it reads as belonging below, not
+     above. */
+  section > * { margin: 0; }
+  section > * + * { margin-top: var(--ds-size-6); }
+  section > h2 + * { margin-top: var(--ds-size-4); }
+  section > h3 + * { margin-top: var(--ds-size-2); }
   .row { display: flex; flex-wrap: wrap; gap: var(--ds-size-4); align-items: center; }
   .row--end { align-items: flex-end; }
+  .row--between { justify-content: space-between; }
+  .row--stretch { align-items: stretch; }
+  .row > .ds-card { flex: 1 1 16rem; }
   .stack { display: grid; gap: var(--ds-size-4); }
-  h2.ds-heading { margin-block: 0 var(--ds-size-4); }
-  h3 { font: inherit; color: var(--ds-color-neutral-text-subtle); margin-block: var(--ds-size-5) var(--ds-size-2); }
+  .narrow { max-width: 28rem; }
 
   /* Swatches print their resolved value, so "white on white" is visible as a
      fact rather than as an empty box. */
   .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: var(--ds-size-2); }
-  .swatch { border-radius: var(--ds-border-radius-md); padding: var(--ds-size-3); font-size: var(--ds-font-size-2);
-            border: 1px solid var(--ds-color-neutral-border-default); display: grid; gap: 2px; }
-  .swatch b { font-weight: 500; }
-  .swatch code { font-family: var(--dvk-font-mono); font-size: var(--ds-font-size-1); opacity: .8; }
-  .swatch--pagebg { outline: 1px dashed var(--ds-color-neutral-border-strong); outline-offset: 2px; }
-  .swatch--page { box-shadow: 0 0 0 3px var(--ds-color-accent-base-default); }
-  .swatch--page b::after { content: " - the page"; font-weight: 400; color: var(--ds-color-neutral-text-subtle); }
+  .swatch { border-radius: var(--ds-border-radius-md); padding: var(--ds-size-3);
+            border: var(--ds-border-width-default) solid var(--ds-color-neutral-border-default);
+            display: grid; gap: var(--ds-size-1); }
+  .swatch b { font-weight: var(--ds-font-weight-medium); }
+  .swatch--pagebg { outline: var(--ds-border-width-default) dashed var(--ds-color-neutral-border-strong); outline-offset: var(--ds-size-1); }
+  .swatch--page { outline: var(--ds-border-width-focus) solid var(--ds-color-accent-base-default); }
+  .swatch--page b::after { content: " - the page"; font-weight: var(--ds-font-weight-regular); color: var(--ds-color-neutral-text-subtle); }
 
   /* Dark-background marks need a dark plate, or white ink on white is
      invisible and reads as "missing". */
@@ -56,31 +68,33 @@
   .plate--small figure > .box { height: 40px; }
   .plate--lockup figure > .box { height: 64px; }
   /* Light and dark shown side by side, equal height, so the pair can be
-     compared at a glance instead of by scrolling. */
+     compared at a glance instead of by scrolling. Each column is a label
+     over a plate; the 1fr row stretches the plate to the taller of the two.
+     Every plate in a duo is wrapped: this rule outranks .plate, and a bare
+     plate as a direct child would lose its flex layout to it. */
   .duo { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ds-size-5); }
   .duo > div { display: grid; grid-template-rows: auto 1fr; gap: var(--ds-size-2); }
-  .duo h3 { margin: 0; }
-  .duo .plate { height: 100%; box-sizing: border-box; }
-  @media (max-width: 60rem) { .duo { grid-template-columns: 1fr; } }
+  @media (width <= 60rem) { .duo { grid-template-columns: 1fr; } }
   /* A fixed-colour surface must declare its own data-color-scheme, or the
      tokens inside it keep resolving to the page's scheme and you get
      near-white text on a white plate. Same trap as the <picture> one. */
   .plate--light, .plate--dark { background: var(--ds-color-neutral-background-default); }
-  .plate--light, .plate--dark { border: 1px solid var(--ds-color-neutral-border-subtle); }
+  .plate--light, .plate--dark { border: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle); }
   .plate figure { margin: 0; display: grid; gap: var(--ds-size-2); justify-items: center; }
-  .plate figcaption { font-size: var(--ds-font-size-1); font-family: var(--dvk-font-mono);
-                      color: var(--ds-color-neutral-text-subtle); }
+  .plate figcaption { color: var(--ds-color-neutral-text-subtle); }
 
   /* Fakes a browser tab so the 16px glyph is judged at its real size. */
-  .tab { display: inline-flex; align-items: center; gap: 8px; background: var(--ds-color-neutral-surface-tinted);
-         border: 1px solid var(--ds-color-neutral-border-subtle); border-radius: 8px 8px 0 0;
-         padding: 8px 14px; font-size: 13px; }
+  .tab { display: inline-flex; align-items: center; gap: var(--ds-size-2); background: var(--ds-color-neutral-surface-tinted);
+         border: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+         border-radius: var(--ds-border-radius-md) var(--ds-border-radius-md) 0 0;
+         padding: var(--ds-size-2) var(--ds-size-3); }
+  .skeleton--short { width: 60%; }
 </style>
 </head>
 <body>
 <div class="sheet">
 
-  <header class="row" style="justify-content: space-between">
+  <header class="row row--between">
     <h1 class="ds-heading" data-size="lg">Dataverket design system</h1>
     <div class="row">
       <button class="ds-button" data-variant="secondary" type="button" id="scheme" aria-pressed="false">Colour scheme: light</button>
@@ -95,7 +109,7 @@
   <!-- ============================================================ mark -->
   <section id="mark">
     <h2 class="ds-heading" data-size="sm">The logo</h2>
-    <p class="ds-paragraph" data-size="sm">
+    <p class="ds-paragraph" data-variant="long">
       The suffix names the <em>background</em> the file is for, not the colour
       of its ink. <code class="dvk-mono">logo-*</code> is the full shape and
       holds down to 32&nbsp;px. <b>24&nbsp;px is the first size that takes
@@ -106,45 +120,51 @@
 
     <div class="duo">
       <div>
-        <h3>logo, on light</h3>
+        <h3 class="ds-heading" data-size="2xs">logo, on light</h3>
         <div data-color-scheme="light" class="plate plate--light plate--ladder">
-          <figure><div class="box"><img src="build/logo-light.svg" alt="" height="128"></div><figcaption>128</figcaption></figure>
-          <figure><div class="box"><img src="build/logo-light.svg" alt="" height="64"></div><figcaption>64</figcaption></figure>
-          <figure><div class="box"><img src="build/logo-light.svg" alt="" height="48"></div><figcaption>48</figcaption></figure>
-          <figure><div class="box"><img src="build/logo-light.svg" alt="" height="32"></div><figcaption>32</figcaption></figure>
+          <figure><div class="box"><img src="build/logo-light.svg" alt="" height="128"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">128</figcaption></figure>
+          <figure><div class="box"><img src="build/logo-light.svg" alt="" height="64"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">64</figcaption></figure>
+          <figure><div class="box"><img src="build/logo-light.svg" alt="" height="48"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">48</figcaption></figure>
+          <figure><div class="box"><img src="build/logo-light.svg" alt="" height="32"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">32</figcaption></figure>
         </div>
       </div>
       <div>
-        <h3>logo, on dark</h3>
+        <h3 class="ds-heading" data-size="2xs">logo, on dark</h3>
         <div data-color-scheme="dark" class="plate plate--dark plate--ladder">
-          <figure><div class="box"><img src="build/logo-dark.svg" alt="" height="128"></div><figcaption>128</figcaption></figure>
-          <figure><div class="box"><img src="build/logo-dark.svg" alt="" height="64"></div><figcaption>64</figcaption></figure>
-          <figure><div class="box"><img src="build/logo-dark.svg" alt="" height="48"></div><figcaption>48</figcaption></figure>
-          <figure><div class="box"><img src="build/logo-dark.svg" alt="" height="32"></div><figcaption>32</figcaption></figure>
+          <figure><div class="box"><img src="build/logo-dark.svg" alt="" height="128"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">128</figcaption></figure>
+          <figure><div class="box"><img src="build/logo-dark.svg" alt="" height="64"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">64</figcaption></figure>
+          <figure><div class="box"><img src="build/logo-dark.svg" alt="" height="48"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">48</figcaption></figure>
+          <figure><div class="box"><img src="build/logo-dark.svg" alt="" height="32"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">32</figcaption></figure>
         </div>
       </div>
     </div>
 
-    <h3>logo with name</h3>
-    <p class="ds-paragraph" data-size="sm">
+    <h3 class="ds-heading" data-size="2xs">logo with name</h3>
+    <p class="ds-paragraph" data-variant="long">
       One file, not a logo and a word arranged by CSS. The name is cut to
       outlines by <code class="dvk-mono">logo.js</code>, so the
       proportions cannot drift, it needs no webfont, and it scales as a unit.
       Same approach as designsystemet.no's own logo.
     </p>
     <div class="duo">
-      <div data-color-scheme="light" class="plate plate--light plate--lockup">
-        <figure><div class="box"><img src="build/lockup-light.svg" alt="Dataverket" height="55"></div><figcaption>64</figcaption></figure>
-        <figure><div class="box"><img src="build/lockup-light.svg" alt="Dataverket" height="41"></div><figcaption>48</figcaption></figure>
+      <div>
+        <h3 class="ds-heading" data-size="2xs">lockup, on light</h3>
+        <div data-color-scheme="light" class="plate plate--light plate--lockup">
+          <figure><div class="box"><img src="build/lockup-light.svg" alt="Dataverket" height="55"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">64</figcaption></figure>
+          <figure><div class="box"><img src="build/lockup-light.svg" alt="Dataverket" height="41"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">48</figcaption></figure>
+        </div>
       </div>
-      <div data-color-scheme="dark" class="plate plate--dark plate--lockup">
-        <figure><div class="box"><img src="build/lockup-dark.svg" alt="Dataverket" height="55"></div><figcaption>64</figcaption></figure>
-        <figure><div class="box"><img src="build/lockup-dark.svg" alt="Dataverket" height="41"></div><figcaption>48</figcaption></figure>
+      <div>
+        <h3 class="ds-heading" data-size="2xs">lockup, on dark</h3>
+        <div data-color-scheme="dark" class="plate plate--dark plate--lockup">
+          <figure><div class="box"><img src="build/lockup-dark.svg" alt="Dataverket" height="55"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">64</figcaption></figure>
+          <figure><div class="box"><img src="build/lockup-dark.svg" alt="Dataverket" height="41"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">48</figcaption></figure>
+        </div>
       </div>
     </div>
 
-    <h3>the brand link</h3>
-    <p class="ds-paragraph" data-size="sm">
+    <h3 class="ds-heading" data-size="2xs">the brand link</h3>
+    <p class="ds-paragraph" data-variant="long">
       <code class="dvk-mono">.dvk-brand</code> with both SVGs inlined and
       <code class="dvk-mono">ds-focus</code> on the link. Tab to it to see the
       ring. Toggle the colour scheme - it follows, because an inline SVG can
@@ -153,31 +173,35 @@
       30rem and the name gives way to the tower alone.
     </p>
     <div class="ds-card">
-      <!-- Fetched from build/ so it cannot drift from logo.js. -->
-      <a class="dvk-brand ds-focus" id="brand" style="--dvk-brand-size: 40px" href="#none"></a>
-      <p class="ds-paragraph" data-size="sm" style="margin-top: var(--ds-size-3)">
-        Inline, <code class="dvk-mono">currentColor</code>. Toggle the colour
-        scheme above - this one follows, the fixed files do not.
-      </p>
+      <div class="ds-card__block">
+        <!-- Fetched from build/ so it cannot drift from logo.js. -->
+        <a class="dvk-brand ds-focus" id="brand" style="--dvk-brand-size: 40px" href="#none"></a>
+      </div>
+      <div class="ds-card__block">
+        <p class="ds-paragraph">
+          Inline, <code class="dvk-mono">currentColor</code>. Toggle the colour
+          scheme above - this one follows, the fixed files do not.
+        </p>
+      </div>
     </div>
 
     <div class="duo">
       <div>
-        <h3>glyph, on light</h3>
+        <h3 class="ds-heading" data-size="2xs">glyph, on light</h3>
         <div data-color-scheme="light" class="plate plate--light plate--small">
-          <figure><div class="box"><img src="build/glyph-light.svg" alt="" height="24"></div><figcaption>24</figcaption></figure>
-          <figure><div class="box"><img src="build/glyph-light.svg" alt="" height="16"></div><figcaption>16</figcaption></figure>
+          <figure><div class="box"><img src="build/glyph-light.svg" alt="" height="24"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">24</figcaption></figure>
+          <figure><div class="box"><img src="build/glyph-light.svg" alt="" height="16"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">16</figcaption></figure>
           <figure>
-            <div class="box"><span class="tab"><img src="build/glyph.svg" alt="" width="16" height="16">Dataverket</span></div>
-            <figcaption>favicon</figcaption>
+            <div class="box"><span class="tab ds-paragraph" data-size="xs"><img src="build/glyph.svg" alt="" width="16" height="16">Dataverket</span></div>
+            <figcaption class="ds-paragraph dvk-mono" data-size="xs">favicon</figcaption>
           </figure>
         </div>
       </div>
       <div>
-        <h3>glyph, on dark</h3>
+        <h3 class="ds-heading" data-size="2xs">glyph, on dark</h3>
         <div data-color-scheme="dark" class="plate plate--dark plate--small">
-          <figure><div class="box"><img src="build/glyph-dark.svg" alt="" height="24"></div><figcaption>24</figcaption></figure>
-          <figure><div class="box"><img src="build/glyph-dark.svg" alt="" height="16"></div><figcaption>16</figcaption></figure>
+          <figure><div class="box"><img src="build/glyph-dark.svg" alt="" height="24"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">24</figcaption></figure>
+          <figure><div class="box"><img src="build/glyph-dark.svg" alt="" height="16"></div><figcaption class="ds-paragraph dvk-mono" data-size="xs">16</figcaption></figure>
         </div>
       </div>
     </div>
@@ -186,7 +210,7 @@
   <!-- =========================================================== colour -->
   <section id="colour">
     <h2 class="ds-heading" data-size="sm">Colour</h2>
-    <p class="ds-paragraph" data-size="sm">
+    <p class="ds-paragraph" data-variant="long">
       Resolved values, read from the generated theme at load.
       <b>The page background is always
       <code class="dvk-mono">--ds-color-neutral-background-default</code></b>,
@@ -222,21 +246,21 @@
   <!-- ========================================================== buttons -->
   <section id="buttons">
     <h2 class="ds-heading" data-size="sm">Buttons</h2>
-    <h3>variants</h3>
+    <h3 class="ds-heading" data-size="2xs">variants</h3>
     <div class="row">
       <button class="ds-button">Create cluster</button>
       <button class="ds-button" data-variant="secondary">Cancel</button>
       <button class="ds-button" data-variant="tertiary">Details</button>
       <button class="ds-button" disabled>Disabled</button>
     </div>
-    <h3>colours</h3>
+    <h3 class="ds-heading" data-size="2xs">colours</h3>
     <div class="row">
       <button class="ds-button" data-color="danger">Delete node</button>
       <button class="ds-button" data-color="success">Approve</button>
       <button class="ds-button" data-color="neutral" data-variant="secondary">Neutral</button>
       <button class="ds-button" data-color="brand1" data-variant="tertiary">brand1 (identity only)</button>
     </div>
-    <h3>sizes</h3>
+    <h3 class="ds-heading" data-size="2xs">sizes</h3>
     <div class="row row--end">
       <button class="ds-button" data-size="sm">sm</button>
       <button class="ds-button" data-size="md">md</button>
@@ -247,7 +271,7 @@
   <!-- ==================================================== status, chips -->
   <section id="status">
     <h2 class="ds-heading" data-size="sm">Status and selection</h2>
-    <h3>tag</h3>
+    <h3 class="ds-heading" data-size="2xs">tag</h3>
     <div class="row">
       <span class="ds-tag" data-color="success">Ready</span>
       <span class="ds-tag" data-color="warning">Draining</span>
@@ -255,20 +279,20 @@
       <span class="ds-tag" data-color="info">Provisioning</span>
       <span class="ds-tag" data-variant="outline" data-color="neutral">Unknown</span>
     </div>
-    <h3>badge</h3>
+    <h3 class="ds-heading" data-size="2xs">badge</h3>
     <div class="row">
       <span class="ds-badge" data-count="3"></span>
       <span class="ds-badge" data-count="12" data-color="danger"></span>
       <span class="ds-badge" data-variant="tinted" data-count="7"></span>
     </div>
-    <h3>chip</h3>
+    <h3 class="ds-heading" data-size="2xs">chip</h3>
     <div class="row">
       <button class="ds-chip" type="button">All</button>
       <button class="ds-chip" type="button" data-removable="true">k8s</button>
       <label class="ds-chip"><input class="ds-input" type="checkbox" checked>Ready</label>
       <label class="ds-chip"><input class="ds-input" type="checkbox">Draining</label>
     </div>
-    <h3>avatar and avatar stack</h3>
+    <h3 class="ds-heading" data-size="2xs">avatar and avatar stack</h3>
     <div class="row">
       <span class="ds-avatar" data-size="sm" aria-label="JB">JB</span>
       <span class="ds-avatar" data-size="md" data-color="accent" aria-label="Operator"></span>
@@ -283,7 +307,7 @@
   <!-- =========================================================== fields -->
   <section id="fields">
     <h2 class="ds-heading" data-size="sm">Fields</h2>
-    <div class="stack" style="max-width: 28rem">
+    <div class="stack narrow">
       <ds-field class="ds-field">
         <label for="n">Cluster name</label>
         <p data-field="description">Lowercase letters, digits and hyphens.</p>
@@ -356,19 +380,19 @@
   <!-- ========================================================== surfaces -->
   <section id="surfaces">
     <h2 class="ds-heading" data-size="sm">Surfaces</h2>
-    <h3>card</h3>
-    <div class="row" style="align-items: stretch">
-      <div class="ds-card" style="flex:1 1 16rem">
+    <h3 class="ds-heading" data-size="2xs">card</h3>
+    <div class="row row--stretch">
+      <div class="ds-card">
         <h4 class="ds-heading" data-size="xs">Object storage</h4>
         <p class="ds-paragraph" data-size="sm">4 buckets, 1.2 TiB used</p>
       </div>
-      <div class="ds-card" data-variant="tinted" style="flex:1 1 16rem">
+      <div class="ds-card" data-variant="tinted">
         <h4 class="ds-heading" data-size="xs">Scheduled</h4>
         <p class="ds-paragraph" data-size="sm">Nothing scheduled.</p>
       </div>
     </div>
 
-    <h3>alert</h3>
+    <h3 class="ds-heading" data-size="2xs">alert</h3>
     <div class="stack">
       <div class="ds-alert" data-color="danger" role="alert">
         <p class="ds-paragraph">Couldn't reach <span class="dvk-mono">node-3</span> - last seen 4 m ago.</p>
@@ -378,13 +402,13 @@
       </div>
     </div>
 
-    <h3>details</h3>
+    <h3 class="ds-heading" data-size="2xs">details</h3>
     <details class="ds-details">
       <summary>Show kubeconfig</summary>
       <div class="dvk-mono">apiVersion: v1<br>clusters: []</div>
     </details>
 
-    <h3>table</h3>
+    <h3 class="ds-heading" data-size="2xs">table</h3>
     <table class="ds-table" data-zebra data-hover>
       <thead><tr><th>Name</th><th>Address</th><th>Status</th></tr></thead>
       <tbody>
@@ -399,7 +423,7 @@
   <section id="nav">
     <h2 class="ds-heading" data-size="sm">Navigation</h2>
 
-    <h3>breadcrumbs</h3>
+    <h3 class="ds-heading" data-size="2xs">breadcrumbs</h3>
     <ds-breadcrumbs class="ds-breadcrumbs">
       <a href="#none" aria-label="Back to Clusters" class="ds-link">Clusters</a>
       <ol>
@@ -409,7 +433,7 @@
       </ol>
     </ds-breadcrumbs>
 
-    <h3>tabs</h3>
+    <h3 class="ds-heading" data-size="2xs">tabs</h3>
     <ds-tabs class="ds-tabs">
       <ds-tablist>
         <ds-tab>Overview</ds-tab><ds-tab>Nodes</ds-tab><ds-tab>Events</ds-tab>
@@ -419,7 +443,7 @@
       <ds-tabpanel>Event log.</ds-tabpanel>
     </ds-tabs>
 
-    <h3>pagination</h3>
+    <h3 class="ds-heading" data-size="2xs">pagination</h3>
     <!-- The component fills in the numbers from data-href/current/total. The
          <li><a> stubs are the slots it writes into. -->
     <ds-pagination class="ds-pagination" aria-label="Pages"
@@ -465,7 +489,7 @@
       <button class="ds-button" data-variant="tertiary" data-tooltip="Refreshes every 10 s">Hover me</button>
     </div>
 
-    <h3>error summary</h3>
+    <h3 class="ds-heading" data-size="2xs">error summary</h3>
     <ds-error-summary class="ds-error-summary">
       <h2>Fix these before continuing</h2>
       <ul>
@@ -474,14 +498,14 @@
       </ul>
     </ds-error-summary>
 
-    <h3>spinner and skeleton</h3>
+    <h3 class="ds-heading" data-size="2xs">spinner and skeleton</h3>
     <div class="row">
       <svg class="ds-spinner" data-size="sm" viewBox="0 0 50 50" role="img" aria-label="Loading">
         <circle class="ds-spinner__background" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
         <circle class="ds-spinner__circle" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
       </svg>
-      <div style="flex: 1 1 18rem" class="stack">
-        <div class="ds-skeleton" data-variant="text" style="width: 60%"></div>
+      <div class="stack" style="flex: 1 1 18rem">
+        <div class="ds-skeleton skeleton--short" data-variant="text"></div>
         <div class="ds-skeleton" data-variant="text"></div>
       </div>
     </div>
@@ -529,7 +553,8 @@
         const token = `--ds-color-${g}-${v}`;
         const value = cs.getPropertyValue(token).trim();
         const el = document.createElement('div');
-        el.className = 'swatch';
+        el.className = 'swatch ds-paragraph';
+        el.dataset.size = 'xs';
 
         if (v.startsWith('border')) {
           // Shown as a border, because that is what it is for. A 1px sample
@@ -554,7 +579,7 @@
         if (isFill && value.toLowerCase() === pageBg) el.classList.add('swatch--pagebg');
         if (g === 'neutral' && v === 'background-default') el.classList.add('swatch--page');
 
-        el.innerHTML = `<b>${g}</b><span>${v}</span><code>${value || '-'}</code>`;
+        el.innerHTML = `<b>${g}</b><span>${v}</span><code class="dvk-mono">${value || '-'}</code>`;
         box.append(el);
       }
     }
