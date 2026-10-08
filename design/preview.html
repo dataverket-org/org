@@ -16,7 +16,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="text-scale" content="scale">
 <title>Dataverket design system</title>
-<link rel="icon" href="build/glyph.svg" type="image/svg+xml">
+<link rel="icon" href="build/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="vendor/fonts/inter.css">
 <link rel="stylesheet" href="vendor/fonts/jetbrains-mono.css">
 <link rel="stylesheet" href="vendor/designsystemet.css">
@@ -238,6 +238,9 @@
       <p class="ds-heading" data-size="xs">Heading xs</p>
       <p class="ds-paragraph" data-size="lg">Paragraph lg. Note the tail on lowercase l: <b>ll11</b></p>
       <p class="ds-paragraph">Paragraph md, the body default.</p>
+      <!-- latin-ext: Sámi and other European names must stay in Inter, not
+           fall back mid-word. -->
+      <p class="ds-paragraph"><span lang="se">Guovdageaidnu, Kárášjohka, Áltá</span> &nbsp; Č č Đ đ Ŋ ŋ Š š Ŧ ŧ Ž ž &nbsp; Łódź, Dvořák</p>
       <p class="ds-paragraph" data-size="sm">Paragraph sm, for secondary detail.</p>
       <p class="dvk-mono">cluster-prod-01 &nbsp; 10.42.0.0/16 &nbsp; sha256:7f3a9c &nbsp; 4m32s</p>
       <p><a class="ds-link" href="#none">A link</a> and <a class="ds-link" data-color="neutral" href="#none">a neutral link</a>.</p>

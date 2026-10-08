@@ -57,20 +57,30 @@ class, and works with JavaScript disabled.
 
 ## House rules for copy
 
-Taken from the design system; they matter more than they look.
+Taken from the design system; they matter more than they look. Services
+render Norwegian bokmål by default (`lang="nb"` in `layout.html`), so the
+examples are bokmål. The component examples in this directory are still in
+English; translate them as you copy.
 
-- **Sentence case** everywhere: "Create cluster", not "Create Cluster".
+- **Sentence case** everywhere: "Opprett klynge", not "Opprett Klynge".
   Acronyms keep their case: API, IP, VM, S3, OIDC, CIDR, mTLS.
 - **Identifiers in `.dvk-mono`** - IDs, IPs, CIDRs, hashes, image tags,
-  durations.
-- **Errors say what broke, where, and what to try.** "Couldn't reach `node-3` -
-  last seen 4 m ago", never "Something went wrong".
-- **Imperative for actions, indicative for status.** No "Please". No
-  exclamation marks. **No emoji in product UI** - status is a tag plus a
-  colour.
-- **Relative time in lists** ("4 m ago"), absolute on hover
-  (`2026-04-12 14:32 UTC`). Binary prefixes for storage (`4 GiB`), decimal for
-  network (`100 Mbps`).
+  durations. They are never translated.
+- **Errors say what broke, where, and what to try.** "Fikk ikke kontakt med
+  `node-3`, sist sett for 4 min siden", never "Noe gikk galt".
+- **Imperative for actions, indicative for status.** "Slett node", not
+  "Vennligst slett". No exclamation marks. **No emoji in product UI** - status
+  is a tag plus a colour.
+- **Relative time in lists** ("for 4 min siden"), absolute on hover
+  (`2026-04-12 14:32 UTC`). Units as Språkrådet writes them: `s`, `min`, `t`,
+  `d` - never `m` for minutes, which reads as metres.
+- **Norwegian number format** in prose and tables: decimal comma (`1,2 TiB`),
+  a non-breaking space as thousands separator (`10 000`). Identifiers keep
+  their own format (`10.42.0.0/16`). Binary prefixes for storage (`4 GiB`),
+  decimal for network (`100 Mbit/s`).
+- **One language per page.** A page in English sets `lang="en"` and has no
+  Norwegian labels, and the other way round; mixed labels are read out in the
+  wrong language.
 
 ## Keep the focus ring
 

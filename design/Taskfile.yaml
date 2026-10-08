@@ -15,6 +15,16 @@ vars:
 
   IMAGE: 'dataverket-design:{{.DS_VERSION}}'
 
+  # One list for every build, so no target falls back to the Dockerfile's
+  # defaults and tags an old toolchain with a new version.
+  BUILD_ARGS: >-
+    --build-arg DS_VERSION={{.DS_VERSION}}
+    --build-arg ESBUILD_VERSION={{.ESBUILD_VERSION}}
+    --build-arg FONTKIT_VERSION={{.FONTKIT_VERSION}}
+    --build-arg HTTP_SERVER_VERSION={{.HTTP_SERVER_VERSION}}
+    --build-arg HTMX_VERSION={{.HTMX_VERSION}}
+    --build-arg FONTSOURCE_VERSION={{.FONTSOURCE_VERSION}}
+
   # CONTAINER_BIN in the env wins.
   CONTAINER_BIN:
     sh: |
@@ -40,21 +50,14 @@ tasks:
       - designsystemet.config.json
       - logo.js
       - dataverket.css
+      - dataverket.js
       - preview.html
-    cmd: >-
-      {{.CONTAINER_BIN}} build -q
-      --build-arg DS_VERSION={{.DS_VERSION}}
-      --build-arg ESBUILD_VERSION={{.ESBUILD_VERSION}}
-      --build-arg FONTKIT_VERSION={{.FONTKIT_VERSION}}
-      --build-arg HTTP_SERVER_VERSION={{.HTTP_SERVER_VERSION}}
-      --build-arg HTMX_VERSION={{.HTMX_VERSION}}
-      --build-arg FONTSOURCE_VERSION={{.FONTSOURCE_VERSION}}
-      -t {{.IMAGE}} "{{.TASKFILE_DIR}}"
+    cmd: '{{.CONTAINER_BIN}} build -q {{.BUILD_ARGS}} -t {{.IMAGE}} "{{.TASKFILE_DIR}}"'
 
   image:rebuild:
     desc: Rebuild the image from scratch, ignoring the layer cache
     cmds:
-      - '{{.CONTAINER_BIN}} build --no-cache -q -t {{.IMAGE}} "{{.TASKFILE_DIR}}"'
+      - '{{.CONTAINER_BIN}} build --no-cache -q {{.BUILD_ARGS}} -t {{.IMAGE}} "{{.TASKFILE_DIR}}"'
 
   image:rm:
     desc: Delete the image

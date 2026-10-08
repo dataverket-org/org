@@ -37,8 +37,9 @@ foreground and shows every Designsystemet component on the Dataverket theme.
 
 ## Use it in a service
 
-Copy `build/`, `vendor/` and `dataverket.css` into the service's `static/`
-and embed them.
+Copy the contents of `build/` and `vendor/`, plus `dataverket.css` and
+`dataverket.js`, into the service's `static/` and embed them. The templates
+expect a flat `static/` (`/static/theme.css`, `/static/fonts/inter.css`).
 
 ```go
 //go:embed static
@@ -55,7 +56,8 @@ Load in this order:
 4. `dataverket.css` - our patch, declares `@layer dataverket` after `ds`
 
 Layers make precedence independent of file order, but keep the order: anything
-unlayered you add later will depend on it.
+unlayered you add later will depend on it. Then the scripts, all deferred:
+`designsystemet-web.js`, `htmx.min.js`, `dataverket.js`.
 
 Designsystemet ships components and tokens only. Page layout - width,
 grid, the spacing between blocks - is yours to write, as designsystemet.no
@@ -71,6 +73,7 @@ See [`templates/layout.html`](templates/layout.html) for the head, and
 | `designsystemet.config.json` | Theme source. Colours, radius, font. |
 | `logo.js` | Logo source. The shapes. |
 | `dataverket.css` | Our patch. The four things Designsystemet does not give us. |
+| `dataverket.js` | Sets `aria-busy` on the region htmx is swapping. |
 | `templates/` | Go `html/template` references for htmx services. |
 | `preview.html` | Contact sheet. `task preview`; needs a server, not `file://`. |
 | `Dockerfile` | The toolchain and the build. Versions pinned here. |
@@ -113,7 +116,8 @@ Four things it does not give us:
    hashes, image tags, durations) take `.dvk-mono`.
 2. **`font-feature-settings: "cv05" 1`** on `body` - Designsystemet's own
    recommendation. Gives lowercase `l` a tail so it stops looking like `1`.
-3. **`.dvk-busy`** - dims the region htmx is swapping.
+3. **`.dvk-busy`** - dims the region htmx is swapping. `dataverket.js` sets
+   `aria-busy` on it, so the state is not visual only.
 4. **`.dvk-brand`** - the brand link. See **The logo**.
 
 Our classes take the `dvk-` prefix, not `ds-`. The patch sits in `@layer
@@ -126,6 +130,7 @@ dataverket` after `ds`, so it wins without `!important`.
 | `logo-*.svg` | The master mark: the tower over two bars, on a tall 848 × 1269 canvas. **Use at 32 px rendered height and above.** |
 | `glyph-*.svg` | The tower simplified, on a square 1149 × 1149 canvas. **Use below 32 px, and for every square icon slot** - favicon, app icon, avatar - whatever its size. |
 | `wide-*.svg` | The master with "Dataverket" beside it. |
+| `favicon.svg` | The glyph, navy or white after the browser's colour scheme. |
 
 **Vertical rhythm.** Tower-to-bar and bar-to-bar gaps are both 68 units on
 the 848-unit-wide grid. Do not alter the spacing when creating derivatives.
@@ -136,17 +141,19 @@ the tall master in a square slot without padding**; use the glyph.
 
 Rasters: rendered height 32 px and above from `logo-*`, below 32 px from
 `glyph-*`, every square icon (16, 32, 180, 192, 512) from the glyph. None are
-committed; the favicon is `glyph.svg`.
+committed; the favicon is `favicon.svg`.
 
 The suffix names the **background** the file is for, not the colour of its ink
 - `logo-dark.svg` is the white one. `logo.svg`, `glyph.svg` and `wide.svg`
 are the same shapes with `fill="currentColor"`. `logo.svg` and `wide.svg`
-carry the class the brand link needs when inlined; `glyph.svg` is the favicon.
+carry the class the brand link needs when inlined.
 
 **Inline those and let them take the text colour.** CSS cannot reach inside an
 `<img>`, which is also why `fill="currentColor"` does nothing there. The
 fixed-colour files are for what cannot be inlined: email, a README image, a
-favicon, a plate whose colour you control.
+plate whose colour you control. The browser tab takes `favicon.svg`: the tab
+strip follows the browser, so that is the one place `prefers-color-scheme` is
+right.
 
 > **Do not drive the logo from `<picture>` with `prefers-color-scheme`.** That
 > reports the operating system's setting, not `data-color-scheme`. With a theme

@@ -115,6 +115,16 @@ console.log('icon');
 write('glyph', GLYPH_BOX,
       `<g transform="translate(${GLYPH_SHIFT.map(num).join(' ')})"><path d="${TOWER_FLAT}"/>${BARS}</g>`,
       'Dataverket');
+// The favicon is the glyph, but the one place prefers-color-scheme is right:
+// the tab strip follows the browser, not the page's data-color-scheme.
+// currentColor would render black there, and a fixed colour vanishes on one
+// of the two strips.
+console.log('favicon');
+writeFileSync(join(OUT, 'favicon.svg'), svg(GLYPH_BOX, VARIANTS.light,
+  `<style>@media (prefers-color-scheme: dark) { svg { fill: ${VARIANTS.dark} } }</style>\n`
+  + `  <g transform="translate(${GLYPH_SHIFT.map(num).join(' ')})"><path d="${TOWER_FLAT}"/>${BARS}</g>`,
+  'Dataverket'));
+console.log('  build/favicon.svg');
 console.log('logo with name');
 const [view, word] = name();
 write('wide', view, `<path d="${TOWER}"/>${BARS}\n  ${word}`, 'Dataverket', 'dvk-brand-wide');

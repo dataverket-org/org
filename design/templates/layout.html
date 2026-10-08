@@ -15,8 +15,13 @@
 */}}
 
 {{define "layout"}}<!doctype html>
-{{/* Set lang to the language this service actually renders. */}}
-<html lang="en" data-color-scheme="auto" data-size="md">
+{{/*
+  Norwegian bokmål by default, like dataverket.org. If a service renders
+  another language, change lang AND every string below together: a screen
+  reader pronounces the whole page by this attribute, so a Norwegian label in
+  an English page is read out with English sounds.
+*/}}
+<html lang="nb" data-color-scheme="auto" data-size="md">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -26,7 +31,9 @@
 
   <title>{{block "title" .}}Dataverket{{end}}</title>
 
-  <link rel="icon" href="/static/glyph.svg" type="image/svg+xml">
+  {{/* favicon.svg switches ink with the browser's scheme; glyph.svg is
+       currentColor and would render black on a dark tab strip. */}}
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
 
   <link rel="stylesheet" href="/static/fonts/inter.css">
   <link rel="stylesheet" href="/static/fonts/jetbrains-mono.css">
@@ -37,11 +44,13 @@
   {{/* Registers every ds-* web component once. Defer: nothing above needs it. */}}
   <script type="module" src="/static/designsystemet-web.js"></script>
   <script src="/static/htmx.min.js" defer></script>
+  {{/* Sets aria-busy on the region htmx is swapping. */}}
+  <script src="/static/dataverket.js" defer></script>
 
   {{block "head" .}}{{end}}
 </head>
 <body>
-  <a class="ds-skip-link" href="#main">Skip to content</a>
+  <a class="ds-skip-link" href="#main">Hopp til hovedinnhold</a>
 
   <header>
     {{/*

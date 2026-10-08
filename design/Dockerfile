@@ -72,9 +72,9 @@ RUN mkdir -p vendor \
  && esbuild /opt/web/entry.js --bundle --format=esm --minify \
       --outfile=/src/vendor/designsystemet-web.js
 
-# Latin subset only, weights 400/500/600 for Inter and 400/500 for JetBrains
-# Mono. The awk keeps the latin @font-face rule (the one whose unicode-range
-# starts at U+0000) and drops the other subsets; the sed strips the .woff
+# Latin and latin-ext subsets, weights 400/500/600 for Inter and 400/500 for
+# JetBrains Mono. latin-ext carries the Sámi letters. The awk keeps those two
+# @font-face rules and drops the other subsets; the sed strips the .woff
 # fallback we do not ship. Fonts are served from us, not altinncdn.no.
 COPY fonts.sh ./
 RUN sh fonts.sh "${FONTSOURCE_VERSION}" && rm fonts.sh
@@ -94,6 +94,6 @@ FROM tools AS serve
 WORKDIR /site
 COPY --from=generate /src/build ./build
 COPY --from=generate /src/vendor ./vendor
-COPY dataverket.css preview.html ./
+COPY dataverket.css dataverket.js preview.html ./
 EXPOSE 8123
 CMD ["http-server", "/site", "-p", "8123", "-c-1", "--silent"]
