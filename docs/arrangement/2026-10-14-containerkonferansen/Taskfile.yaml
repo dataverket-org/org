@@ -1,43 +1,63 @@
-# Bygger foredrag.md
+# Builds foredrag.md with mermaid-cli and Marp.
 #
-# mermaid-cli (mmdc) rendrer Mermaid-blokkene i foredrag.md til
-# content/foredrag-N.svg og skriver byggekopien content/foredrag.md med
-# blokkene byttet mot bildene. Marp bygger content/foredrag.html og
-# content/foredrag.pdf fra kopien.
+#   foredrag.md            source
+#   content/foredrag-N.svg rendered Mermaid blocks, committed
+#   content/foredrag.md    build copy, blocks replaced by the images, not committed
+#   content/foredrag.html  committed
+#   content/foredrag.pdf   committed
 #
-# Krever: task install (brew), og Brave eller Chrome.
+# Requires go-task, marp-cli, mermaid-cli (`task install`) and one of Brave,
+# Chrome, Chromium, Firefox.
 #
-#   task install    installer go-task, marp-cli og mermaid-cli med Homebrew
-#   task            bygg content/foredrag.html og content/foredrag.pdf
-#   task --watch    bygg på nytt hver gang foredrag.md endres
-#   task dev        live reload: åpne content/live.html i nettleseren, den oppdaterer seg selv ved lagring (ingen pdf)
+#   task                 list the targets
+#   task build           build html and pdf
+#   task --watch build   rebuild on every change to foredrag.md
+#   task dev             live reload in content/live.html, no pdf
 version: '3'
 
 vars:
-  # Nettleseren mmdc og Marp rendrer med: BROWSER_BIN i miljøet vinner, ellers Brave, så Chrome.
+  # BROWSER_BIN in the env wins. macOS: Spotlight by bundle id, app bundles are
+  # not in PATH. Linux: command -v.
   BROWSER_BIN:
     sh: |
-      for b in "$BROWSER_BIN" \
-        {{if eq OS "darwin"}}"/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"{{else}}/opt/brave.com/brave/brave /usr/bin/brave-browser /usr/bin/google-chrome /usr/bin/chromium{{end}}; do
-        [ -n "$b" ] && [ -x "$b" ] && { echo "$b"; exit 0; }
+      [ -n "$BROWSER_BIN" ] && [ -x "$BROWSER_BIN" ] && { echo "$BROWSER_BIN"; exit 0; }
+      {{if eq OS "darwin"}}
+      for id in "com.brave.Browser:Brave Browser" "com.google.Chrome:Google Chrome" "org.chromium.Chromium:Chromium" "org.mozilla.firefox:firefox"; do
+        app=$(mdfind "kMDItemCFBundleIdentifier == '${id%%:*}'" | head -n 1)
+        b="$app/Contents/MacOS/${id#*:}"
+        [ -n "$app" ] && [ -x "$b" ] && { echo "$b"; exit 0; }
       done
-      echo 'fant verken Brave eller Chrome, sett BROWSER_BIN' >&2; exit 1
+      {{else}}
+      for c in brave-browser brave google-chrome google-chrome-stable chromium chromium-browser firefox firefox-esr; do
+        b=$(command -v "$c") && { echo "$b"; exit 0; }
+      done
+      {{end}}
+      echo 'no Brave, Chrome, Chromium or Firefox found, set BROWSER_BIN' >&2; exit 1
+
+  # Marp `--browser` and Puppeteer PUPPETEER_BROWSER: chrome (CDP) or firefox (WebDriver BiDi).
+  BROWSER_KIND:
+    sh: case "{{.BROWSER_BIN}}" in *irefox*) echo firefox ;; *) echo chrome ;; esac
 
 tasks:
   default:
-    desc: Bygg content/foredrag.html og content/foredrag.pdf
+    silent: true
+    cmds:
+      - task --list
+
+  build:
+    desc: Build content/foredrag.html and content/foredrag.pdf
     sources: [foredrag.md]
     generates: [content/foredrag.html, content/foredrag.pdf]
     cmds:
       - task: copy
       - marp --no-stdin --html content/foredrag.md -o content/foredrag.html
-      - marp --no-stdin --html --allow-local-files --browser-path "{{.BROWSER_BIN}}" content/foredrag.md -o content/foredrag.pdf
+      - marp --no-stdin --html --allow-local-files --browser {{.BROWSER_KIND}} --browser-path "{{.BROWSER_BIN}}" content/foredrag.md -o content/foredrag.pdf
 
   install:
-    desc: Installer byggeverktøyene med Homebrew
+    desc: Install go-task, marp-cli and mermaid-cli with Homebrew
     preconditions:
       - sh: command -v brew
-        msg: fant ikke brew, se https://brew.sh
+        msg: brew not found, see https://brew.sh
     status:
       - command -v task
       - command -v marp
@@ -46,25 +66,24 @@ tasks:
       - brew install go-task marp-cli mermaid-cli
 
   copy:
-    desc: Render diagrammene og skriv byggekopien content/foredrag.md
+    desc: Render the diagrams and write the build copy content/foredrag.md
     sources: [foredrag.md]
     generates: [content/foredrag.md]
     env:
+      PUPPETEER_BROWSER: '{{.BROWSER_KIND}}'
       PUPPETEER_EXECUTABLE_PATH: '{{.BROWSER_BIN}}'
     cmds:
-      # Hver Mermaid-blokk setter handDrawnSeed i %%{init: ...}%%-direktivet sitt. Uten seed jitrer
-      # rough.js nodeformene litt for hver kjøring, og SVG-ene blir endret i git selv om
-      # diagrammet er likt. Alle blokkene setter den, så nye diagrammer kan kopiere direktivet.
+      # Every Mermaid block sets handDrawnSeed in its %%{init: ...}%% directive; rough.js
+      # output is otherwise not stable between runs.
       - mmdc -q -i foredrag.md -o content/foredrag.md -a content -e svg
-      # Kopien og alt den peker på ligger i content/, så mappa strykes fra bildestiene i manuset.
-      # Mønsteret krever ![...] foran, ellers strykes content/ også fra vanlige lenker, og da
-      # bakte Marp inn file:///Users/... i pdf-en. g-en tar med bilde nummer to på samme linje.
+      # Strip content/ from image paths only. The build copy lives in content/; an
+      # unprefixed path in a plain link makes Marp embed file:///... in the pdf.
       - sed 's#!\(\[[^]]*\]\)(content/#!\1(#g' content/foredrag.md > content/foredrag.tmp && mv content/foredrag.tmp content/foredrag.md
 
   dev:
-    desc: Hold kopien oppdatert og la Marp rendre content/live.html med live reload i nettleseren
+    desc: Keep the build copy current and let Marp render content/live.html with live reload
     cmds:
-      # Marp gir opp med en gang hvis byggekopien mangler, så den bygges ferdig før vaktene starter.
+      # Marp exits if the build copy is missing at start.
       - task: copy
       - task: dev:watch
 
