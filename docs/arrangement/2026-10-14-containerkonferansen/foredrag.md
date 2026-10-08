@@ -52,7 +52,13 @@ Innledning, 5 minutter, begge
 
 ## Hvorfor spørsmålet haster nå
 
-<!-- Agenter, orkestratorer og autonome arbeidslaster handler selv. -->
+- En controller oppretter, sletter og flytter uten at noen trykket på en knapp
+- En agent kaller API-er med credentials den fikk av noen, en gang
+- Auditloggen sier *hva* som skjedde og *hvilken maskin* som gjorde det
+
+Den sier sjelden **på vegne av hvem**.
+
+<small>Kubernetes-operatorer, GitOps-controllere, CI-runnere og LLM-agenter er alle maskiner som handler for et menneske som ikke er til stede.</small>
 
 ---
 
@@ -74,7 +80,17 @@ Jan Ivar, 17 minutter
 
 ## Dataverket på ett bilde
 
-<!-- Go, AGPL. Alt snakker CloudEvents over NATS. Plattform er Kubernetes, så publikum ser seg selv i bildet. -->
+<!--
+Premissene først, så bildet.
+- Alle logger inn ett sted. Ingen lokale brukere, ingen langlevde nøkler.
+- Alt som gjøres må logges, og loggen må peke på en identitet.
+- Én organisasjon er ett sikkerhetsdomene, kryptografisk, ikke ved policy.
+- Koden skal kunne kjøres og driftes uten oss.
+Kravene er de samme som i NSM 2.1, 2.6, 2.7, CRA vedlegg I og DFØ B.IS.30–32. Vi bygger dem inn, ikke oppå.
+
+Bildet: Go, AGPL v3. Meldinger over NATS, alle som CloudEvents. Identitet er Zitadel i dag.
+To principals til venstre: et menneske og en controller-pod. Begge henter token fra Identitet, begge kobler til Sentral på samme måte. Plattform er Kubernetes, så dere er allerede i bildet.
+-->
 
 ```mermaid
 %%{init: {"handDrawnSeed": 1, "fontFamily": "Helvetica, Arial, sans-serif", "flowchart": {"htmlLabels": true, "padding": 12}}}%%
@@ -107,7 +123,15 @@ flowchart LR
 
 ## Én organisasjon er ett sikkerhetsdomene
 
-<!-- Spørsmål 1. Et namespace er en policy-grense: RBAC og NetworkPolicy sier nei. En NATS-konto er en nøkkelgrense: et emne i A finnes ikke i B. Kryss-trafikk krever eksplisitt export/import, per emne. -->
+<!--
+Spørsmål 1: kan kryss-trafikk gjøres umulig, ikke bare forbudt?
+- En NATS-konto har egen signeringsnøkkel. Et emne i konto A finnes ikke i konto B.
+- Hver organisasjon i Identitet blir én konto for mennesker og maskiner.
+- Hver tjeneste har sin egen konto, og importerer eksplisitt, emne for emne.
+- Ingen policy å glemme, ingen regel som kan skrives feil.
+I Kubernetes stopper NetworkPolicy trafikken. Her finnes det ingen trafikk å stoppe.
+Kontoen er grensen. Auth callout bestemmer hvem som slipper inn i den, neste bilde.
+-->
 
 ```mermaid
 %%{init: {"handDrawnSeed": 1, "fontFamily": "Helvetica, Arial, sans-serif", "flowchart": {"htmlLabels": true, "padding": 12}}}%%
@@ -142,7 +166,17 @@ Kubernetes: namespace er en policy-grense. NATS: konto er en nøkkelgrense.
 
 ## Innslipp: fra token til tilkobling
 
-<!-- Spørsmål 2. Slått sammen fra de to BLUG-diagrammene. Poenget for k8s-folk: ingen Secret med langlevd nøkkel, callouten ringer ikke Identitet på den varme stien, og rettighetene lever like lenge som tokenet. Podens vei til et Identitet-token i dag er en nøkkel i en Secret, det er Hullet. -->
+<!--
+Spørsmål 2: kan kortlevde tokens erstatte statiske credentials? Slått sammen fra de to BLUG-diagrammene.
+Callouten gjør lite, med vilje:
+- Verifiserer signaturen mot Identitets JWKS, hentet ved oppstart og ved ukjent kid. Aldri per CONNECT.
+- Bygger principal fra claims: org gir konto, roller gir rettigheter.
+- Spør Cedar: hvilke emnemønstre får denne principalen publisere og abonnere på?
+- Svarer NATS med en signert bruker-JWT som utløper når tokenet utløper.
+Ingen kall til Identitet på den varme stien. Identitet nede rammer bare fornyelsen.
+Mennesker har ingen hemmeligheter å rotere. Poder har det fortsatt: i dag en signert JWT med nøkkel i en Secret. Det er hullet, og vi kommer dit.
+Cedar er policyspråket, samme som i Salmon.
+-->
 
 ```mermaid
 %%{init: {"handDrawnSeed": 1}}%%
@@ -169,7 +203,15 @@ sequenceDiagram
 
 ## Konvolutten bestemmer, ikke innholdet
 
-<!-- Som RBAC: verb, ressurs og namespace avgjør, ikke spec-en. Her: type, ressurs-ID og org i CloudEvent-konvolutten avgjør, og Sentral leser aldri data. Emne- og ID-formatet er illustrasjon, ikke vedtatt. -->
+<!--
+Emne- og ID-formatet er illustrasjon, ikke vedtatt.
+- Kommandoer, hendelser, spørringer og svar, samme konvolutt. CloudEvents 1.0.
+- Alle ressurser har en global ID som kan stå i en regel.
+- Emnet utledes av konvolutten, og rettighetene er emnemønstre gitt ved CONNECT.
+- Sentral leser aldri data. Den trenger ikke å forstå tjenesten for å beskytte den.
+Auditloggen er konvolutten pluss principalen. Den finnes før tjenesten har sett meldinga.
+Samme mønster som RBAC: avgjørelsen tas på verb, ressurs og namespace, ikke på spec.
+-->
 
 RBAC avgjør på verb, ressurs og namespace. Sentral avgjør på type, ressurs-ID og org.
 
@@ -198,7 +240,15 @@ flowchart LR
 
 ## Delegering med RFC 8693
 
-<!-- Spørsmål 3. Operatormønsteret: en controller handler på vegne av et menneske. TokenRequest API gir poden et kortlevd SA-token med valgt audience, ingen Secret. STS er planlagt, ikke bygget. -->
+<!--
+Spørsmål 3: kan en maskinhandling spores tilbake til et menneske? Operatormønsteret: en controller handler på vegne av Kari.
+- sub er mennesket. act er maskinen som handler for det. Kjeden kan nestes: controller for pipeline for Kari.
+- may_act sier hvem som får handle for hvem, bestemt der tokenet byttes.
+- 15 minutters levetid. aud er mottakeren, ikke utstederen.
+Poden trenger ingen Secret. TokenRequest gir et kortlevd SA-token med den audiencen vi ber om, og clusterets egen OIDC-utsteder signerer det.
+Hver hendelse i Sentral kan spores til en person, også når en maskin sendte den.
+STS er planlagt, ikke bygget. RFC 8693 §4.1 act, §4.4 may_act. Kubernetes: projected ServiceAccount tokens, TokenRequest API, issuer discovery.
+-->
 
 ```mermaid
 %%{init: {"handDrawnSeed": 1}}%%
@@ -225,7 +275,16 @@ sequenceDiagram
 
 ## Hullet
 
-<!-- Zitadels token exchange er GA, men bytter bare egne tokens. Clusterets SA-token kommer ikke inn. Kontrollplanet trenger egen STS: egen iss, egne nøkler, eget JWKS, og act, audience og may_act. Overgang til Linus: Salmon har formen. -->
+<!--
+Det vi trenger av en STS:
+- Egen iss, egne signeringsnøkler, eget JWKS. Tjenester verifiserer mot én utsteder.
+- Tar imot Zitadels tokens for mennesker og tjenestebrukere.
+- Tar imot SA-tokens fra hvert clusters innebygde OIDC-utsteder.
+- Utsteder sub, act, aud, org og roller, slik callouten vil ha dem.
+- Håndhever may_act.
+Zitadels token exchange er GA, men bytter bare Zitadels egne tokens. Keycloak og de andre er bygget for mennesker.
+Dette må alle som trenger delegert maskinidentitet bygge selv i dag. Linus har begynt. Overgang.
+-->
 
 Den stiplede boksen finnes ikke i dag. Linus har begynt å skrive den.
 
