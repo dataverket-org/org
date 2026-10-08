@@ -117,7 +117,7 @@ flowchart LR
     OA["org A"]
     OB["org B"]
   end
-  subgraph N["Sentral, én NATS-cluster"]
+  subgraph N["Sentral, ett NATS-cluster"]
     direction TB
     subgraph KA["konto A, egen signeringsnøkkel"]
       SA["a.maskin.&gt;<br/>a.plattform.&gt;"]
