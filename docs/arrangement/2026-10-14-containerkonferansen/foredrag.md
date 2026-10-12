@@ -37,36 +37,120 @@ Containerkonferansen | Trondheim, 14. oktober 2026 | Jan Ivar Beddari og Linus J
 
 <!-- _class: skille -->
 
-## Hvem er denne maskinen, og på vegne av hvem handler den?
+## Hvilken maskin er dette, og hvem kjører hva på den?
 
 Innledning, 5 minutter, begge
 
 ---
 
-## Hvem er vi
+## Hvorfor står vi her
 
-- Jan Ivar: Dataverket, et åpent kontrollplan for suveren skyinfrastruktur
-- Linus: salmon, en identitetsleverandør for mennesker og arbeidslaster
+<!--
+Jan Ivar: UH-sky og Safespring var hendelsesdrevne kontrollplan med mennesker og maskiner på samme buss. I Dataverket er poder principals fra dag én, og de logger inn i dag med en nøkkel i en Secret.
+Linus: identitetsplattformene er laget for mennesker. RFC 8693 er lest, men ikke ferdig implementert noe sted. Derfor salmon.
+Vi fant hverandre fordi vi manglet det samme.
+-->
 
----
-
-## Hvorfor spørsmålet haster nå
-
-- En controller oppretter, sletter og flytter uten at noen trykket på en knapp
-- En agent kaller API-er med credentials den fikk av noen, en gang
-- Auditloggen sier *hva* som skjedde og *hvilken maskin* som gjorde det
-
-Den sier sjelden **på vegne av hvem**.
-
-<small>Kubernetes-operatorer, GitOps-controllere, CI-runnere og LLM-agenter er alle maskiner som handler for et menneske som ikke er til stede.</small>
+- Jan Ivar: UH-sky / NREC, ti år i Safespring med hendelsesdrevne kontrollplan. I 2026: Dataverket, et åpent kontrollplan for suveren skyinfrastruktur
+- Linus: salmon, en identitetsleverandør for mennesker og arbeidslaster, skrevet fordi de som finnes er bygget for mennesker
+- Vi traff samme vegg fra hver vår side: en maskin som skal handle for et menneske, utenfor clusteret den bor i
 
 ---
 
-## Tre spørsmål
+## I dag: hvilken prosess på hvilken maskin er dette?
 
-1. **Tenant-isolasjon**: kan kryss-trafikk gjøres kryptografisk umulig, ikke bare forbudt?
-2. **Innlogging uten hemmeligheter**: kan kortlevde tokens erstatte statiske credentials?
-3. **Delegering**: kan en maskinhandling spores tilbake til et menneske?
+<!--
+Et projisert ServiceAccount-token, slik det ser ut i dag. Alle i salen har tusenvis av dem.
+- Kort levetid, bundet til poden, signert av clusterets egen OIDC-utsteder med discovery og JWKS.
+- RBAC sjekker bare verb, ressurs og namespace. Loggen i kube-apiserver vet hvem som gjorde hva.
+Første halvdel av spørsmålet er besvart, så langt clusteret rekker. Se etter mennesket i tokenet. Det er ikke der.
+-->
+
+```json
+{
+  "iss": "https://kubernetes.default.svc.cluster.local",
+  "sub": "system:serviceaccount:plattform:controller",
+  "aud": ["https://kubernetes.default.svc.cluster.local"],
+  "exp": 1791979500,
+  "kubernetes.io": {
+    "namespace": "plattform",
+    "serviceaccount": { "name": "controller", "uid": "…" },
+    "pod": { "name": "controller-6c9d4-x7k2p", "uid": "…" },
+    "node": { "name": "node-07", "uid": "…" }
+  }
+}
+```
+
+Prosess, maskin og organisasjon står i tokenet. Kort levetid, bundet til poden, signert av clusterets egen OIDC-utsteder. RBAC sjekker bare verb, ressurs og namespace.
+
+Ingen claim sier hvilket menneske som har ansvaret.
+
+---
+
+## I dag: clusteret er grensen
+
+<style scoped>img { max-height: 330px; }</style>
+
+<!--
+Kari gjør kubectl apply. Loggen i kube-apiserver sier kari. Controlleren ser endringen og skal gjøre noe utenfor: et kontrollplan, en sky-API, et annet cluster, en meldingsbuss.
+Tilgangen ut av clusteret er i dag en statisk nøkkel i en Secret. Et menneske laget den én gang, og den lever til noen husker å bytte den. Slik er det i Dataverket også.
+To tidsskalaer, samme hull. Interaktivt: Kari gjør noe nå, controlleren gjør det for henne. Over tid: en jobb som skriver til en S3-bøtte hos en annen operatør hver natt, med en access key noen laget i fjor. Begge må kunne spores til et menneske.
+På den andre siden sier loggen «controller». Kari er borte.
+De store skyleverandørene har løst dette for sine egne tjenester: IRSA hos AWS, Workload Identity Federation hos Google og Azure. Samme projiserte token, vekslet inn i en kortlevd nøkkel. Åpne identitetsløsninger er laget for mennesker og mangler tilsvarende. Zitadel veksler bare egne tokens, Keycloak er på vei.
+-->
+
+```mermaid
+%%{init: {"handDrawnSeed": 1, "fontFamily": "Helvetica, Arial, sans-serif", "flowchart": {"htmlLabels": true, "padding": 12}}}%%
+flowchart TB
+  subgraph K["cluster, én tillitsgrense"]
+    direction LR
+    M["Kari"]
+    API["kube-apiserver<br/>auditlogg: sub=kari"]
+    C["controller-pod<br/>SA-token, kort levetid,<br/>bundet til poden"]
+    M -- "kubectl apply<br/>token sub=kari" --> API
+    API -- "watch" --> C
+  end
+  subgraph U["utenfor"]
+    direction LR
+    X["kontrollplan, sky-API,<br/>S3-bøtte hos en annen operatør"]
+    L["auditlogg: controller<br/>på vegne av hvem: ukjent"]
+    X --> L
+  end
+  K -- "Secret med access key, laget av et menneske, en gang" --> U
+```
+
+Enten Kari gjør det nå eller en jobb gjør det hver natt i et år: tilgangen ut av clusteret er en statisk nøkkel som ble laget én gang. De store skyleverandørene har løst dette for sine egne tjenester. Åpne identitetsløsninger mangler tilsvarende.
+
+---
+
+## Det haster å finne bedre løsninger!
+
+<!--
+Operatormønsteret er ti år gammelt, og vi har levd med at loggen sier «controller». En agent er noe annet: den velger selv hva den gjør, med nøkler noen ga den én gang.
+Når maskinen bare gjør det koden sier, følger handlingen av noe et menneske skrev. Da går det an å finne mennesket i etterkant: ressursen i clusteret, git-historikken, hvem som godkjente. Tungvint, men mulig. Når maskinen velger selv, følger ikke handlingen av koden lenger, og samme agent handler for mange mennesker. Koden peker på den som satte agenten i gang, ikke på den som ba om akkurat denne handlingen. Det står ingen steder, med mindre det ble registrert idet det skjedde. Derfor må mennesket finnes i tokenet og logges når det skjer.
+-->
+
+- Operatorer, GitOps-controllere og CI-runnere har gjort jobben for oss i ti år. Vi har godtatt at loggen sier «controller»
+- En agent velger selv hva den gjør, med nøkler noen ga den én gang
+- Loggen sier *hva* som ble gjort og *hvilken maskin* som gjorde det. Den sier sjelden **hvilket menneske som sto bak**
+
+Når maskinen bare gjør det koden sier, kan vi finne mennesket i etterkant, i koden og i ressursen. Når maskinen velger selv, må mennesket finnes i tokenet og logges når det skjer.
+
+---
+
+## Ett problem, to halvdeler som løsning
+
+<!--
+Dette er disposisjonen. Første halvdel har Dataverket svar på, og Jan Ivar viser hvordan: organisasjon blir konto, token blir tilkobling, konvolutten avgjør. Andre halvdel er hullet. Jan Ivar viser hvor det er, Linus viser det han har bygget for å fylle det. Til slutt ønskelisten.
+-->
+
+**Hvilken prosess på hvilken maskin er dette?**
+Server, VM eller pod: hvilken organisasjon hører den til, og hvordan beviser den det uten en nøkkel? Det har vi svar på. Jan Ivar viser hvordan.
+
+**Hvem kjører hva på den?**
+Mennesket med ansvaret må følge med i tokenet, ut av clusteret og inn i loggen. Det har ingen ferdig svar på i dag. Linus har begynt.
+
+Til slutt: en ønskeliste, så neste utvikler slipper å bygge det selv.
 
 ---
 
@@ -74,7 +158,7 @@ Den sier sjelden **på vegne av hvem**.
 
 ## Kontrollplanet
 
-Jan Ivar, 17 minutter
+Hvilken prosess på hvilken maskin er dette? Jan Ivar, 17 minutter
 
 ---
 
@@ -90,6 +174,8 @@ Kravene er de samme som i NSM 2.1, 2.6, 2.7, CRA vedlegg I og DFØ B.IS.30–32.
 
 Bildet: Go, AGPL v3. Meldinger over NATS, alle som CloudEvents. Identitet er Zitadel i dag.
 To principals til venstre: et menneske og en controller-pod. Begge henter token fra Identitet, begge kobler til Sentral på samme måte. Plattform er Kubernetes, så dere er allerede i bildet.
+kube-apiserver i Plattform bruker også Identitet, med kubelogin. Kari har samme sub i clusterets auditlogg som i Sentrals. Det er forutsetningen for delegeringsslidet.
+Dette er status nå. Poden henter token fra Identitet med en nøkkel i en Secret. STS-en og Salmon kommer på de tre siste slidene i min del.
 -->
 
 ```mermaid
@@ -117,6 +203,7 @@ flowchart LR
   N --- NE
   N --- O
   N --- P
+  ID -. "OIDC for kube-apiserver, kubelogin" .-> P
 ```
 
 ---
@@ -124,7 +211,7 @@ flowchart LR
 ## Én organisasjon er ett sikkerhetsdomene
 
 <!--
-Spørsmål 1: kan kryss-trafikk gjøres umulig, ikke bare forbudt?
+Hvilken maskin er dette, første del: hvilken organisasjon. Kryss-trafikk skal være umulig ved nøkkel, ikke sperret av en regel.
 - En NATS-konto har egen signeringsnøkkel. Et emne i konto A finnes ikke i konto B.
 - Hver organisasjon i Identitet blir én konto for mennesker og maskiner.
 - Hver tjeneste har sin egen konto, og importerer eksplisitt, emne for emne.
@@ -155,7 +242,7 @@ flowchart LR
   end
   OA -- "token: org=A → konto A" --> KA
   OB -- "token: org=B → konto B" --> KB
-  KA x-- "ingen vei, ikke bare forbudt" --x KB
+  KA x-- "umulig å lese: nøkkel, ikke regel" --x KB
   KA -. export .-> KM
   KB -. export .-> KM
 ```
@@ -164,116 +251,155 @@ Kubernetes: namespace er en policy-grense. NATS: konto er en nøkkelgrense.
 
 ---
 
-## Innslipp: fra token til tilkobling
+## Innslipp: tilkobling til kontrollplanet
 
 <!--
-Spørsmål 2: kan kortlevde tokens erstatte statiske credentials? Slått sammen fra de to BLUG-diagrammene.
+Hvilken maskin er dette, andre del: hvordan beviser den det. Kortlevde tokens, ingen statiske credentials. Slått sammen fra de to BLUG-diagrammene.
 Callouten gjør lite, med vilje:
 - Verifiserer signaturen mot Identitets JWKS, hentet ved oppstart og ved ukjent kid. Aldri per CONNECT.
 - Bygger principal fra claims: org gir konto, roller gir rettigheter.
 - Spør Cedar: hvilke emnemønstre får denne principalen publisere og abonnere på?
 - Svarer NATS med en signert bruker-JWT som utløper når tokenet utløper.
+- Tilkoblingen logges: hvem, hvilken konto, hvilke rettigheter, hvor lenge. Loggen starter ved døra. De neste to slidene bygger på den.
 Ingen kall til Identitet på den varme stien. Identitet nede rammer bare fornyelsen.
-Mennesker har ingen hemmeligheter å rotere. Poder har det fortsatt: i dag en signert JWT med nøkkel i en Secret. Det er hullet, og vi kommer dit.
+Mennesker har ingen hemmeligheter å rotere. Prosesser har det fortsatt: i dag en signert JWT med nøkkel i en Secret. Det er hullet, og vi kommer dit.
 Cedar er policyspråket, samme som i Salmon.
 -->
 
 ```mermaid
-%%{init: {"handDrawnSeed": 1}}%%
+%%{init: {"handDrawnSeed": 1, "sequence": {"width": 175}}}%%
 sequenceDiagram
-  actor K as Klient<br/>menneske eller pod
+  actor K as Klient<br/>menneske eller prosess
   participant Z as Identitet<br/>Zitadel
   participant N as Sentral<br/>NATS
   participant C as Auth callout
   participant P as Cedar
-  K->>Z: menneske: innlogging eller refresh<br/>pod: signert JWT (i dag: nøkkel i en Secret)
+  participant L as Auditlogg
+  K->>Z: menneske: innlogging eller refresh<br/>prosess: signert JWT (i dag: nøkkel i en Secret)
   Z-->>K: access token, kort levetid<br/>{iss, sub, org, roller, exp}
+  Z->>L: innlogging, sub
   K->>N: CONNECT med token
   N->>C: AuthorizationRequest {token}
   Note over C: 1. signatur mot Identitets JWKS<br/>hentet ved oppstart og ved ukjent kid, aldri per CONNECT
   Note over C: 2. principal: org → konto, roller → grants
-  C->>P: principal, konto, katalog av emnemønstre
+  C->>P: hvilke emnemønstre?
   P-->>C: tillat eller avslå per mønster
   C-->>N: bruker-JWT signert av callouten<br/>konto, pub/sub-rettigheter, exp = tokenets exp
+  N->>L: tilkobling: sub, konto, rettigheter, exp
   N-->>K: tilkoblet
   Note over K,N: ved exp: nytt token, ny CONNECT. Identitet nede rammer bare fornyelsen.
 ```
 
 ---
 
-## Konvolutten bestemmer, ikke innholdet
+## En melding i Sentral
 
 <!--
-Emne- og ID-formatet er illustrasjon, ikke vedtatt.
-- Kommandoer, hendelser, spørringer og svar, samme konvolutt. CloudEvents 1.0.
-- Alle ressurser har en global ID som kan stå i en regel.
-- Emnet utledes av konvolutten, og rettighetene er emnemønstre gitt ved CONNECT.
-- Sentral leser aldri data. Den trenger ikke å forstå tjenesten for å beskytte den.
-Auditloggen er konvolutten pluss principalen. Den finnes før tjenesten har sett meldinga.
-Samme mønster som RBAC: avgjørelsen tas på verb, ressurs og namespace, ikke på spec.
+Dette er det som går over bussen. Kommandoer, hendelser, spørringer og svar har samme konvolutt. CloudEvents 1.0, CNCF, samme som Knative bruker.
+- type sier hva. source sier hvilken prosess som sendte. subject sier hvilken ressurs det gjelder.
+- Alle ressurser har en global ID som kan stå i en regel. Formatet følger ARN: tjeneste, region, org, type og ID. Illustrasjon, ikke vedtatt.
+- data er tjenestens sak. Sentral leser den aldri, og trenger ikke forstå tjenesten for å beskytte den.
 -->
 
-RBAC avgjør på verb, ressurs og namespace. Sentral avgjør på type, ressurs-ID og org.
+```json
+{
+  "specversion": "1.0",
+  "type": "maskin.server.create",
+  "source": "dvk:plattform:r1:a:controller/maskin",
+  "subject": "dvk:maskin:r1:a:server/srv-0042",
+  "id": "…",
+  "time": "2026-10-14T11:07:12Z",
+  "data": { "cpu": 64, "minne": "512G", "nett": "…" }
+}
+```
+
+Kommandoer, hendelser, spørringer og svar: samme konvolutt. CloudEvents 1.0, CNCF.
+
+Sentral leser aldri `data`. Resten er nok til å rute, tillate og logge.
+
+---
+
+## Konvolutten bestemmer, ikke innholdet
+
+<style scoped>img { max-height: 420px; }</style>
+
+<!--
+Samme melding som forrige slide.
+- Emnet utledes av type og subject. Rettighetene er emnemønstre gitt ved CONNECT, så serveren matcher uten å lese noe annet.
+- Avvises meldinga, er det NATS-serveren som avviser den, og ingen tjeneste ser den.
+Auditloggen er principalen fra CONNECT pluss konvolutten: hvem, hva og hvilken ressurs. Den finnes før tjenesten har sett meldinga. I dag er «hvem» prosessen.
+Når STS-en kommer, er det bare principal-boksen som endres. Neste slide.
+Samme mønster som RBAC: den sjekker bare verb, ressurs og namespace, aldri spec.
+-->
+
+RBAC sjekker bare verb, ressurs og namespace. Sentral sjekker bare type, ressurs-ID og org.
 
 ```mermaid
 %%{init: {"handDrawnSeed": 1, "fontFamily": "Helvetica, Arial, sans-serif", "flowchart": {"htmlLabels": true, "padding": 12}}}%%
 flowchart LR
-  subgraph E["CloudEvent"]
-    direction TB
-    T["type: maskin.server.create"]
-    SU["subject: dvk://a/maskin/server/srv-0042"]
-    SRC["source: dvk://a/plattform/controller"]
-    D["data: {...}<br/>leses ikke av Sentral"]
-  end
+  K["konvolutten<br/>type + subject"]
   SUBJ["NATS-emne<br/>a.maskin.server.srv-0042.create"]
-  J["pub-rettigheter i bruker-JWT<br/>gitt av Cedar ved CONNECT<br/>a.maskin.server.*.create"]
+  P["principal fra CONNECT<br/>sub=controller"]
+  J["pub-rettigheter i bruker-JWT<br/>fra Cedar ved CONNECT<br/>a.maskin.server.*.create"]
   R{"match?"}
-  T --> SUBJ
-  SU --> SUBJ
-  SUBJ --> R
-  J --> R
+  K --> SUBJ --> R
+  P --> J --> R
   R -- ja --> OK["levert til alle som lytter"]
-  R -- nei --> NO["avvist av NATS-serveren<br/>meldingen forlater aldri klienten"]
+  R -- nei --> NO["avvist av NATS-serveren<br/>ingen tjeneste ser den"]
+  OK --> LOG["auditlogg: principal + konvolutt<br/>hvem, hva, hvilken ressurs<br/>før tjenesten har sett meldinga"]
 ```
 
 ---
 
-## Delegering med RFC 8693
+## Løsning: delegering med RFC 8693
 
 <!--
-Spørsmål 3: kan en maskinhandling spores tilbake til et menneske? Operatormønsteret: en controller handler på vegne av Kari.
-- sub er mennesket. act er maskinen som handler for det. Kjeden kan nestes: controller for pipeline for Kari.
-- may_act sier hvem som får handle for hvem, bestemt der tokenet byttes.
+Ingenting i Sentral endres fra forrige slide. STS-en bytter bare ut principalen: sub=kari, act=controller. Match og auditlogg er de samme.
+Azure Workload Identity og Google Workload Identity Federation gjør akkurat denne vekslingen, projisert SA-token inn, kortlevd token ut, mot sin egen STS. Vi gjør den mot vår. Salmon er bygget på Azure-modellen, Linus kommer tilbake til det.
+På vegne av hvem: her begynner andre halvdel. Operatormønsteret fra innledningen: en controller handler på vegne av Kari, nå uten Secret.
+- Kari logger inn i clusteret med Identitet. Auditloggen i kube-apiserver sier kari, og en webhook stempler ressursen med hvem som opprettet den. Controlleren ser aldri Kari sitt token, apiserver kaster det.
+- sub er mennesket. act er prosessen som handler for det. Kjeden kan nestes: controller for pipeline for Kari.
+- may_act er Cedar-policy i STS-en: controller i dette clusteret, registrert på org A, får handle for brukere i org A. Mennesket er attribuert, ikke bevist til stede. Tokenet bør si det.
+- Synkront, fra CLI rett mot Sentral, er Kari sitt token i hånda: subject_token=kari, actor_token=SA-token, RFC 8693 ordrett.
+- Dette er det interaktive tilfellet. Jobben som går hver natt mot en S3-bøtte hos Objekt trenger det samme, men der må retten gis én gang av et menneske og lagres. Neste slide.
 - 15 minutters levetid. aud er mottakeren, ikke utstederen.
 Poden trenger ingen Secret. TokenRequest gir et kortlevd SA-token med den audiencen vi ber om, og clusterets egen OIDC-utsteder signerer det.
 Hver hendelse i Sentral kan spores til en person, også når en maskin sendte den.
-STS er planlagt, ikke bygget. RFC 8693 §4.1 act, §4.4 may_act. Kubernetes: projected ServiceAccount tokens, TokenRequest API, issuer discovery.
+STS er planlagt, ikke bygget. RFC 8693 §4.1 act, §4.4 may_act. Kubernetes: structured authentication config, admission webhook, projected ServiceAccount tokens, TokenRequest API, issuer discovery.
 -->
 
 ```mermaid
-%%{init: {"handDrawnSeed": 1}}%%
+%%{init: {"handDrawnSeed": 1, "sequence": {"width": 175}}}%%
 sequenceDiagram
   actor M as Kari
   participant Z as Identitet
+  participant A as kube-apiserver<br/>OIDC mot Identitet,<br/>egen utsteder
   participant PC as controller-pod<br/>Plattform
-  participant A as kube-apiserver<br/>OIDC-utsteder
   participant STS as STS, planlagt
   participant N as Sentral
-  M->>Z: innlogging
-  Z-->>M: token sub=kari
-  M->>PC: «opprett cluster», token følger med
+  participant L as Auditlogg
+  M->>Z: kubelogin
+  Z-->>M: token sub=kari, org=a
+  Z->>L: innlogging, sub=kari
+  M->>A: kubectl apply, token følger med
+  A->>L: kubectl apply, sub=kari
+  Note over A: webhook stempler ressursen: opprettet av kari
+  A-->>PC: watch
   PC->>A: TokenRequest, aud=sts
-  A-->>PC: SA-token<br/>sub=system:serviceaccount:plattform:controller
-  PC->>STS: token-exchange<br/>subject_token=kari, actor_token=SA-token, audience=sentral
-  Note over STS: begge verifiseres mot hver sin JWKS<br/>may_act: får controller handle for kari?
+  A-->>PC: SA-token, aud=sts<br/>sub=system:serviceaccount:<br/>plattform:controller
+  PC->>STS: token-exchange<br/>actor_token=SA-token<br/>for kari i org a, audience=sentral
+  Note over STS: SA-token mot clusterets JWKS<br/>may_act i Cedar: får controller i dette clusteret<br/>handle for kari i org a?<br/>attribuert, ikke bevist: Kari sitt token kom aldri hit
+  STS->>L: veksling: sub=kari, act={sub: controller}, may_act ja
   STS-->>PC: token sub=kari, act={sub: controller}<br/>aud=sentral, exp 15 min
   PC->>N: CONNECT + CloudEvents
-  Note over N: auditlogg per hendelse: sub=kari, act=controller
+  N->>L: tilkobling og hver hendelse<br/>sub=kari, act={sub: controller}
 ```
 
 ---
 
 ## Hullet
+
+<style scoped>img { max-height: 380px; }</style>
 
 <!--
 Det vi trenger av en STS:
@@ -281,12 +407,13 @@ Det vi trenger av en STS:
 - Tar imot Zitadels tokens for mennesker og tjenestebrukere.
 - Tar imot SA-tokens fra hvert clusters innebygde OIDC-utsteder.
 - Utsteder sub, act, aud, org og roller, slik callouten vil ha dem.
-- Håndhever may_act.
+- Håndhever may_act, som policy for operatormønsteret og som lagret grant når Kari selv skal gi og trekke tilbake retten.
 Zitadels token exchange er GA, men bytter bare Zitadels egne tokens. Keycloak og de andre er bygget for mennesker.
+Objekt-tilfellet: jobben i clusteret veksler sitt SA-token hos STS-en mot et token med sub=kari og act=jobb, på en grant Kari ga én gang og kan trekke tilbake. Objekt-gatewayen tar det tokenet i AssumeRoleWithWebIdentity og gir S3-nøkler som lever i timer, ikke år. Gatewayens egen logg navngir mennesket. Både versitygw og RadosGW gjør dette i dag, mot et token fra en utsteder de stoler på.
 Dette må alle som trenger delegert maskinidentitet bygge selv i dag. Linus har begynt. Overgang.
 -->
 
-Den stiplede boksen finnes ikke i dag. Linus har begynt å skrive den.
+Den stiplede boksen finnes ikke i dag. Linus har begynt å skrive den. Samme token åpner en S3-bøtte hos Objekt, uten access key i en Secret.
 
 ```mermaid
 %%{init: {"handDrawnSeed": 1, "fontFamily": "Helvetica, Arial, sans-serif", "flowchart": {"htmlLabels": true, "padding": 12}}}%%
@@ -297,12 +424,14 @@ flowchart LR
   ZX["Zitadel token exchange<br/>GA, bytter bare egne tokens"]
   STS["STS<br/>egen iss, egne nøkler, eget JWKS<br/>act, audience, may_act"]
   S["Sentral<br/>auth callout stoler på én utsteder"]
+  O["Objekt<br/>AssumeRoleWithWebIdentity,<br/>kortlevde S3-nøkler"]
   Z --> ZX
   K1 x-- "kommer ikke inn" --x ZX
   Z --> STS
   K1 --> STS
   K2 --> STS
   STS --> S
+  STS -- "sub=kari, act=jobb,<br/>grant gitt én gang" --> O
   style STS stroke-dasharray: 6 4
 ```
 
@@ -312,7 +441,7 @@ flowchart LR
 
 ## Salmon
 
-Linus, 12 minutter
+Hvem kjører hva på den? Linus, 12 minutter
 
 ---
 
@@ -384,7 +513,7 @@ Dem imellom, 8 minutter. Først tre om Salmon, så tre om Dataverket.
 
 ## Om Dataverket, 1
 
-<!-- Linus spør, Jan Ivar svarer. -->
+<!-- Linus spør, Jan Ivar svarer. Forslag fra notatet: når Kari kommer inn via kubelogin, hvem er «brukeren» i Sentral, Zitadel-sub eller STS-sub? Og hva om samme menneske kommer fra en annen utsteder i morgen? -->
 
 ---
 
@@ -404,11 +533,11 @@ Dem imellom, 8 minutter. Først tre om Salmon, så tre om Dataverket.
 
 ---
 
-## Tre spørsmål, tre svar
+## Ett problem, to svar
 
-1. Tenant-isolasjon:
-2. Innlogging uten hemmeligheter:
-3. Delegering:
+**Hvilken prosess på hvilken maskin er dette?** En konto i Sentral som speiler organisasjonen, et token som utløper, en konvolutt som avgjør. Ingen hemmeligheter å rotere.
+
+**Hvem kjører hva på den?** `sub` er mennesket som har ansvaret, `act` er prosessen som handler for det, utstedt av en STS som stoler på både clusteret og identitetsplattformen. Den finnes ikke ferdig i dag. Linus har begynt å skrive den.
 
 Bli med i Dataverket: medlem@dataverket.org
 
