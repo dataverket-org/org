@@ -357,7 +357,8 @@ flowchart LR
 Ingenting i Sentral endres fra forrige slide. STS-en bytter bare ut principalen: sub=kari, act=controller. Match og auditlogg er de samme.
 Azure Workload Identity og Google Workload Identity Federation gjør akkurat denne vekslingen, projisert SA-token inn, kortlevd token ut, mot sin egen STS. Vi gjør den mot vår. Salmon er bygget på Azure-modellen, Linus kommer tilbake til det.
 På vegne av hvem: her begynner andre halvdel. Operatormønsteret fra innledningen: en controller handler på vegne av Kari, nå uten Secret.
-- Granten gis én gang per workload, ikke per apply: controller i dette clusteret får handle for kari, i org A, til hun trekker det tilbake. Verktøyet hennes lager den første gang det snakker med clusteret, med Kari sitt eget token som bevis. Som en federated credential: opprettet én gang, brukt hver gang.
+- Workload og grant er ressurser i Identitet med egen ID, opprettet og slettet gjennom Sentral som alle andre ressurser: identitet.workload.create med issuer og sub, identitet.grant.create med menneske, workload og org. Principalen er Kari, verifisert av callouten, så granten er bevist med hennes eget token. Azure gjør det samme med federated credentials, Salmon med Workload og Credential som rader.
+- Granten gis én gang per workload, ikke per apply: controller i dette clusteret får handle for kari, i org A, til hun sletter den. Opprettet én gang, brukt hver gang. Revokering er en delete, med samme logg.
 - Kari logger inn i clusteret med Identitet og gjør apply. kube-apiserver logger kari, og en webhook stempler ressursen med verifisert bruker. En validerende regel låser feltet. Stempelet beviser ingenting mot STS-en, det velger hvilken grant controlleren skal bruke for akkurat denne ressursen. Controlleren ser aldri Kari sitt token, og trenger det ikke.
 - Granten er det samme som en federated credential i Azure eller en IAM-binding i Google: opprettet én gang av et menneske, så veksler workloaden uten at mennesket er der. Vi bygger det som workload identity. Forskjellen er at mennesket blir med i tokenet ut, slik AWS SourceIdentity følger en rollekjede.
 - sub er mennesket. act er prosessen som handler for det. Kjeden kan nestes: controller for pipeline for Kari.
@@ -366,7 +367,7 @@ På vegne av hvem: her begynner andre halvdel. Operatormønsteret fra innledning
 - 15 minutters levetid. aud er mottakeren, ikke utstederen.
 Poden trenger ingen Secret. TokenRequest gir et kortlevd SA-token med den audiencen vi ber om, og clusterets egen OIDC-utsteder signerer det.
 Hver hendelse i Sentral kan spores til en person, også når en maskin sendte den.
-STS er planlagt, ikke bygget. RFC 8693 §4.1 act, §4.4 may_act. Kubernetes: structured authentication config, projected ServiceAccount tokens, TokenRequest API, issuer discovery. Granten opprettes av et kubectl-plugin eller Dataverkets CLI, første gang. Stempelet settes av en mutating webhook og låses med ValidatingAdmissionPolicy eller Kyverno, slik Rancher gjør med field.cattle.io/creatorId.
+STS er planlagt, ikke bygget. RFC 8693 §4.1 act, §4.4 may_act. Kubernetes: structured authentication config, projected ServiceAccount tokens, TokenRequest API, issuer discovery. Workload og grant opprettes gjennom Dataverkets CLI eller portal, første gang. Stempelet settes av en mutating webhook og låses med ValidatingAdmissionPolicy eller Kyverno, slik Rancher gjør med field.cattle.io/creatorId.
 -->
 
 ```mermaid
@@ -379,8 +380,8 @@ sequenceDiagram
   participant STS as STS, planlagt
   participant N as Sentral
   participant L as Auditlogg
-  M->>STS: én gang: grant, controller får handle for kari<br/>bevist med Kari sitt token
-  STS->>L: grant: sub=kari, actor=controller
+  M->>STS: workload identity-API, én gang:<br/>registrer controller (issuer, sub), gi grant for kari
+  STS->>L: grant opprettet: dvk:identitet:r1:a:grant/…, sub=kari
   M->>Z: kubelogin
   Z-->>M: token sub=kari, org=a
   Z->>L: innlogging, sub=kari
@@ -410,7 +411,7 @@ Det vi trenger av en STS:
 - Tar imot Zitadels tokens for mennesker og tjenestebrukere.
 - Tar imot SA-tokens fra hvert clusters innebygde OIDC-utsteder.
 - Utsteder sub, act, aud, org og roller, slik callouten vil ha dem.
-- Lagrer grants: hvem får handle for hvem, i hvilket omfang, til det trekkes tilbake. may_act som rad, slik Salmon alt har tillit til en workload som én rad.
+- Leser workloads og grants fra Identitet, der de er ressurser med egen ID: hvem får handle for hvem, i hvilken org, til granten slettes. may_act som ressurs, slik Salmon alt har tillit til en workload som én rad.
 Zitadels token exchange er GA, men bytter bare Zitadels egne tokens. Keycloak og de andre er bygget for mennesker.
 Objekt-tilfellet: jobben i clusteret veksler sitt SA-token hos STS-en mot et token med sub=kari og act=jobb, på samme slags grant som på forrige slide, gitt én gang og mulig å trekke tilbake. Objekt-gatewayen tar det tokenet i AssumeRoleWithWebIdentity og gir S3-nøkler som lever i timer, ikke år. Gatewayens egen logg navngir mennesket. Både versitygw og RadosGW gjør dette i dag, mot et token fra en utsteder de stoler på.
 Dette må alle som trenger delegert maskinidentitet bygge selv i dag. Linus har begynt. Overgang.
@@ -425,7 +426,7 @@ flowchart LR
   K1["cluster 1<br/>OIDC-utsteder"]
   K2["cluster 2<br/>OIDC-utsteder"]
   ZX["Zitadel token exchange<br/>GA, bytter bare egne tokens"]
-  STS["STS<br/>egen iss, egne nøkler, eget JWKS<br/>act, audience, grants"]
+  STS["STS<br/>egen iss, egne nøkler, eget JWKS<br/>act, audience, grants som ressurser"]
   S["Sentral<br/>auth callout stoler på én utsteder"]
   O["Objekt<br/>AssumeRoleWithWebIdentity,<br/>kortlevde S3-nøkler"]
   Z --> ZX
@@ -508,7 +509,7 @@ Dem imellom, 8 minutter. Først tre om Salmon, så tre om Dataverket.
 
 ## Om Salmon, 3
 
-<!-- Jan Ivar spør, Linus svarer. Forslag: tillit til en workload er én rad i Salmon. Kan en grant være samme slags rad, menneske, workload, omfang, trukket tilbake når? Og hva må til for at et menneske kan være subjekt? -->
+<!-- Jan Ivar spør, Linus svarer. Forslag: tillit til en workload er én rad i Salmon, med dashbord. Kan en grant være samme slags rad, menneske, workload, org, slettet når? Og kan radene bli et API Sentral snakker med, slik at workload og grant er ressurser med egen ID? Hva må til for at et menneske kan være subjekt? -->
 
 ---
 
