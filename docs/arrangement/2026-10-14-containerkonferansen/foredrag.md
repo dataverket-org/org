@@ -357,15 +357,15 @@ flowchart LR
 Ingenting i Sentral endres fra forrige slide. STS-en bytter bare ut principalen: sub=kari, act=controller. Match og auditlogg er de samme.
 Azure Workload Identity og Google Workload Identity Federation gjør akkurat denne vekslingen, projisert SA-token inn, kortlevd token ut, mot sin egen STS. Vi gjør den mot vår. Salmon er bygget på Azure-modellen, Linus kommer tilbake til det.
 På vegne av hvem: her begynner andre halvdel. Operatormønsteret fra innledningen: en controller handler på vegne av Kari, nå uten Secret.
-- Kari logger inn i clusteret med Identitet. Auditloggen i kube-apiserver sier kari, og en webhook stempler ressursen med hvem som opprettet den. Controlleren ser aldri Kari sitt token, apiserver kaster det.
+- Kari logger inn i clusteret med Identitet. Idet hun gjør apply, oppretter verktøyet hennes en grant hos STS-en: controller i dette clusteret får handle for kari, i org A, til hun trekker det tilbake. Granten bevises med Kari sitt eget token, der og da. Controlleren ser aldri tokenet hennes, apiserver kaster det, og trenger det ikke.
+- Granten er det samme som en federated credential i Azure eller en IAM-binding i Google: opprettet én gang av et menneske, så veksler workloaden uten at mennesket er der. Vi bygger det som workload identity. Forskjellen er at mennesket blir med i tokenet ut, slik AWS SourceIdentity følger en rollekjede.
 - sub er mennesket. act er prosessen som handler for det. Kjeden kan nestes: controller for pipeline for Kari.
-- may_act er Cedar-policy i STS-en: controller i dette clusteret, registrert på org A, får handle for brukere i org A. Mennesket er attribuert, ikke bevist til stede. Tokenet bør si det.
-- Synkront, fra CLI rett mot Sentral, er Kari sitt token i hånda: subject_token=kari, actor_token=SA-token, RFC 8693 ordrett.
-- Dette er det interaktive tilfellet. Jobben som går hver natt mot en S3-bøtte hos Objekt trenger det samme, men der må retten gis én gang av et menneske og lagres. Neste slide.
+- may_act er granten: en rad i STS-en, ikke bare et claim. Hvem får handle for hvem, i hvilket omfang, til det trekkes tilbake. Cedar sjekker raden ved hver veksling.
+- Samme grant dekker jobben som går hver natt mot en S3-bøtte hos Objekt. Neste slide.
 - 15 minutters levetid. aud er mottakeren, ikke utstederen.
 Poden trenger ingen Secret. TokenRequest gir et kortlevd SA-token med den audiencen vi ber om, og clusterets egen OIDC-utsteder signerer det.
 Hver hendelse i Sentral kan spores til en person, også når en maskin sendte den.
-STS er planlagt, ikke bygget. RFC 8693 §4.1 act, §4.4 may_act. Kubernetes: structured authentication config, admission webhook, projected ServiceAccount tokens, TokenRequest API, issuer discovery.
+STS er planlagt, ikke bygget. RFC 8693 §4.1 act, §4.4 may_act. Kubernetes: structured authentication config, projected ServiceAccount tokens, TokenRequest API, issuer discovery. Granten opprettes av et kubectl-plugin eller Dataverkets CLI.
 -->
 
 ```mermaid
@@ -381,15 +381,16 @@ sequenceDiagram
   M->>Z: kubelogin
   Z-->>M: token sub=kari, org=a
   Z->>L: innlogging, sub=kari
-  M->>A: kubectl apply, token følger med
+  M->>STS: grant: controller får handle for kari<br/>bevist med Kari sitt token
+  STS->>L: grant: sub=kari, actor=controller
+  M->>A: kubectl apply
   A->>L: kubectl apply, sub=kari
-  Note over A: webhook stempler ressursen: opprettet av kari
   A-->>PC: watch
   PC->>A: TokenRequest, aud=sts
   A-->>PC: SA-token, aud=sts<br/>sub=system:serviceaccount:<br/>plattform:controller
-  PC->>STS: token-exchange<br/>actor_token=SA-token<br/>for kari i org a, audience=sentral
-  Note over STS: SA-token mot clusterets JWKS<br/>may_act i Cedar: får controller i dette clusteret<br/>handle for kari i org a?<br/>attribuert, ikke bevist: Kari sitt token kom aldri hit
-  STS->>L: veksling: sub=kari, act={sub: controller}, may_act ja
+  PC->>STS: token-exchange<br/>actor_token=SA-token<br/>grant for kari, audience=sentral
+  Note over STS: SA-token mot clusterets JWKS<br/>granten: finnes, passer, ikke trukket tilbake<br/>bevist: Kari ga lov med sitt eget token
+  STS->>L: veksling: sub=kari, act={sub: controller}, grant ok
   STS-->>PC: token sub=kari, act={sub: controller}<br/>aud=sentral, exp 15 min
   PC->>N: CONNECT + CloudEvents
   N->>L: tilkobling og hver hendelse<br/>sub=kari, act={sub: controller}
@@ -407,9 +408,9 @@ Det vi trenger av en STS:
 - Tar imot Zitadels tokens for mennesker og tjenestebrukere.
 - Tar imot SA-tokens fra hvert clusters innebygde OIDC-utsteder.
 - Utsteder sub, act, aud, org og roller, slik callouten vil ha dem.
-- Håndhever may_act, som policy for operatormønsteret og som lagret grant når Kari selv skal gi og trekke tilbake retten.
+- Lagrer grants: hvem får handle for hvem, i hvilket omfang, til det trekkes tilbake. may_act som rad, slik Salmon alt har tillit til en workload som én rad.
 Zitadels token exchange er GA, men bytter bare Zitadels egne tokens. Keycloak og de andre er bygget for mennesker.
-Objekt-tilfellet: jobben i clusteret veksler sitt SA-token hos STS-en mot et token med sub=kari og act=jobb, på en grant Kari ga én gang og kan trekke tilbake. Objekt-gatewayen tar det tokenet i AssumeRoleWithWebIdentity og gir S3-nøkler som lever i timer, ikke år. Gatewayens egen logg navngir mennesket. Både versitygw og RadosGW gjør dette i dag, mot et token fra en utsteder de stoler på.
+Objekt-tilfellet: jobben i clusteret veksler sitt SA-token hos STS-en mot et token med sub=kari og act=jobb, på samme slags grant som på forrige slide, gitt én gang og mulig å trekke tilbake. Objekt-gatewayen tar det tokenet i AssumeRoleWithWebIdentity og gir S3-nøkler som lever i timer, ikke år. Gatewayens egen logg navngir mennesket. Både versitygw og RadosGW gjør dette i dag, mot et token fra en utsteder de stoler på.
 Dette må alle som trenger delegert maskinidentitet bygge selv i dag. Linus har begynt. Overgang.
 -->
 
@@ -422,7 +423,7 @@ flowchart LR
   K1["cluster 1<br/>OIDC-utsteder"]
   K2["cluster 2<br/>OIDC-utsteder"]
   ZX["Zitadel token exchange<br/>GA, bytter bare egne tokens"]
-  STS["STS<br/>egen iss, egne nøkler, eget JWKS<br/>act, audience, may_act"]
+  STS["STS<br/>egen iss, egne nøkler, eget JWKS<br/>act, audience, grants"]
   S["Sentral<br/>auth callout stoler på én utsteder"]
   O["Objekt<br/>AssumeRoleWithWebIdentity,<br/>kortlevde S3-nøkler"]
   Z --> ZX
@@ -505,7 +506,7 @@ Dem imellom, 8 minutter. Først tre om Salmon, så tre om Dataverket.
 
 ## Om Salmon, 3
 
-<!-- Jan Ivar spør, Linus svarer. -->
+<!-- Jan Ivar spør, Linus svarer. Forslag: tillit til en workload er én rad i Salmon. Kan en grant være samme slags rad, menneske, workload, omfang, trukket tilbake når? Og hva må til for at et menneske kan være subjekt? -->
 
 ---
 
@@ -537,7 +538,7 @@ Dem imellom, 8 minutter. Først tre om Salmon, så tre om Dataverket.
 
 **Hvilken prosess på hvilken maskin er dette?** En konto i Sentral som speiler organisasjonen, et token som utløper, en konvolutt som avgjør. Ingen hemmeligheter å rotere.
 
-**Hvem kjører hva på den?** `sub` er mennesket som har ansvaret, `act` er prosessen som handler for det, utstedt av en STS som stoler på både clusteret og identitetsplattformen. Den finnes ikke ferdig i dag. Linus har begynt å skrive den.
+**Hvem kjører hva på den?** `sub` er mennesket som har ansvaret, `act` er prosessen som handler for det, utstedt av en STS på en grant mennesket selv ga, slik workload identity gjør det hos skyleverandørene. STS-en finnes ikke ferdig i dag. Linus har begynt å skrive den.
 
 Bli med i Dataverket: medlem@dataverket.org
 
