@@ -357,15 +357,16 @@ flowchart LR
 Ingenting i Sentral endres fra forrige slide. STS-en bytter bare ut principalen: sub=kari, act=controller. Match og auditlogg er de samme.
 Azure Workload Identity og Google Workload Identity Federation gjør akkurat denne vekslingen, projisert SA-token inn, kortlevd token ut, mot sin egen STS. Vi gjør den mot vår. Salmon er bygget på Azure-modellen, Linus kommer tilbake til det.
 På vegne av hvem: her begynner andre halvdel. Operatormønsteret fra innledningen: en controller handler på vegne av Kari, nå uten Secret.
-- Kari logger inn i clusteret med Identitet. Idet hun gjør apply, oppretter verktøyet hennes en grant hos STS-en: controller i dette clusteret får handle for kari, i org A, til hun trekker det tilbake. Granten bevises med Kari sitt eget token, der og da. Controlleren ser aldri tokenet hennes, apiserver kaster det, og trenger det ikke.
+- Granten gis én gang per workload, ikke per apply: controller i dette clusteret får handle for kari, i org A, til hun trekker det tilbake. Verktøyet hennes lager den første gang det snakker med clusteret, med Kari sitt eget token som bevis. Som en federated credential: opprettet én gang, brukt hver gang.
+- Kari logger inn i clusteret med Identitet og gjør apply. kube-apiserver logger kari, og en webhook stempler ressursen med verifisert bruker. En validerende regel låser feltet. Stempelet beviser ingenting mot STS-en, det velger hvilken grant controlleren skal bruke for akkurat denne ressursen. Controlleren ser aldri Kari sitt token, og trenger det ikke.
 - Granten er det samme som en federated credential i Azure eller en IAM-binding i Google: opprettet én gang av et menneske, så veksler workloaden uten at mennesket er der. Vi bygger det som workload identity. Forskjellen er at mennesket blir med i tokenet ut, slik AWS SourceIdentity følger en rollekjede.
 - sub er mennesket. act er prosessen som handler for det. Kjeden kan nestes: controller for pipeline for Kari.
-- may_act er granten: en rad i STS-en, ikke bare et claim. Hvem får handle for hvem, i hvilket omfang, til det trekkes tilbake. Cedar sjekker raden ved hver veksling.
+- may_act er granten: en rad i STS-en, ikke bare et claim. Hvem får handle for hvem, i hvilken org, til det trekkes tilbake. Cedar sjekker raden ved hver veksling. Beviset er granten pluss stempelet: Kari ga lov med sitt eget token, og kube-apiserver har verifisert at det var hun som opprettet ressursen.
 - Samme grant dekker jobben som går hver natt mot en S3-bøtte hos Objekt. Neste slide.
 - 15 minutters levetid. aud er mottakeren, ikke utstederen.
 Poden trenger ingen Secret. TokenRequest gir et kortlevd SA-token med den audiencen vi ber om, og clusterets egen OIDC-utsteder signerer det.
 Hver hendelse i Sentral kan spores til en person, også når en maskin sendte den.
-STS er planlagt, ikke bygget. RFC 8693 §4.1 act, §4.4 may_act. Kubernetes: structured authentication config, projected ServiceAccount tokens, TokenRequest API, issuer discovery. Granten opprettes av et kubectl-plugin eller Dataverkets CLI.
+STS er planlagt, ikke bygget. RFC 8693 §4.1 act, §4.4 may_act. Kubernetes: structured authentication config, projected ServiceAccount tokens, TokenRequest API, issuer discovery. Granten opprettes av et kubectl-plugin eller Dataverkets CLI, første gang. Stempelet settes av en mutating webhook og låses med ValidatingAdmissionPolicy eller Kyverno, slik Rancher gjør med field.cattle.io/creatorId.
 -->
 
 ```mermaid
@@ -378,18 +379,19 @@ sequenceDiagram
   participant STS as STS, planlagt
   participant N as Sentral
   participant L as Auditlogg
+  M->>STS: én gang: grant, controller får handle for kari<br/>bevist med Kari sitt token
+  STS->>L: grant: sub=kari, actor=controller
   M->>Z: kubelogin
   Z-->>M: token sub=kari, org=a
   Z->>L: innlogging, sub=kari
-  M->>STS: grant: controller får handle for kari<br/>bevist med Kari sitt token
-  STS->>L: grant: sub=kari, actor=controller
   M->>A: kubectl apply
   A->>L: kubectl apply, sub=kari
+  Note over A: webhook stempler ressursen: opprettet av kari
   A-->>PC: watch
   PC->>A: TokenRequest, aud=sts
   A-->>PC: SA-token, aud=sts<br/>sub=system:serviceaccount:<br/>plattform:controller
-  PC->>STS: token-exchange<br/>actor_token=SA-token<br/>grant for kari, audience=sentral
-  Note over STS: SA-token mot clusterets JWKS<br/>granten: finnes, passer, ikke trukket tilbake<br/>bevist: Kari ga lov med sitt eget token
+  PC->>STS: token-exchange<br/>actor_token=SA-token<br/>for kari, stempelet på ressursen, audience=sentral
+  Note over STS: SA-token mot clusterets JWKS<br/>granten finnes og er ikke trukket tilbake<br/>bevist: Kari ga lov med sitt eget token
   STS->>L: veksling: sub=kari, act={sub: controller}, grant ok
   STS-->>PC: token sub=kari, act={sub: controller}<br/>aud=sentral, exp 15 min
   PC->>N: CONNECT + CloudEvents
