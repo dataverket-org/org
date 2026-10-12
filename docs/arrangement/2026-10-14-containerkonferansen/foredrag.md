@@ -351,7 +351,7 @@ flowchart LR
 
 ---
 
-## Løsning: delegering med RFC 8693
+## Løsning: workload-delegering med RFC 8693
 
 <!--
 Ingenting i Sentral endres fra forrige slide. STS-en bytter bare ut principalen: sub=kari, act=controller. Match og auditlogg er de samme.
