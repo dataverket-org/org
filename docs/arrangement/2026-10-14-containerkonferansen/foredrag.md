@@ -138,7 +138,7 @@ Når maskinen bare gjør det koden sier, kan vi finne mennesket i etterkant, i k
 
 ---
 
-## Ett problem, to halvdeler som løsning
+## Ett problem, to halvdeler
 
 <!--
 Dette er disposisjonen. Første halvdel har Dataverket svar på, og Jan Ivar viser hvordan: organisasjon blir konto, token blir tilkobling, konvolutten avgjør. Andre halvdel er hullet. Jan Ivar viser hvor det er, Linus viser det han har bygget for å fylle det. Til slutt ønskelisten.
@@ -147,10 +147,10 @@ Dette er disposisjonen. Første halvdel har Dataverket svar på, og Jan Ivar vis
 **Hvilken prosess på hvilken maskin er dette?**
 Server, VM eller pod: hvilken organisasjon hører den til, og hvordan beviser den det uten en nøkkel? Det har vi svar på. Jan Ivar viser hvordan.
 
-**Hvem kjører hva på den?**
-Mennesket med ansvaret må følge med i tokenet, ut av clusteret og inn i loggen. Det har ingen ferdig svar på i dag. Linus har begynt.
+**Men HVEM kjører hva på den??!**
+Mennesket med ansvar for maskina må følge med i tokenet, ut av clusteret og inn i loggen. Dette har ingen gode svar på i dag. Linus har begynt på relevant kode!
 
-Til slutt: en ønskeliste, så neste utvikler slipper å bygge det selv.
+Til slutt: Vår ønskeliste til alle, så hver av oss slipper å bygge dette alene.
 
 ---
 
