@@ -123,7 +123,7 @@ Enten Kari gjør det nå eller en jobb gjør det hver natt i et år: tilgangen u
 
 ---
 
-## Det haster å finne bedre løsninger!
+## Det haster å finne bedre løsninger
 
 <!--
 Operatormønsteret er ti år gammelt, og vi har levd med at loggen sier «controller». En agent er noe annet: den velger selv hva den gjør, med nøkler noen ga den én gang.
@@ -442,23 +442,281 @@ flowchart LR
 
 ## Salmon
 
-Hvem kjører hva på den? Linus, 12 minutter
+Vi er per dags dato blitt veldig gode på strømlinjeforming av menneskelig autentisering.
+Men maskiner, not so much.
+
+Eksempel fra min erfaring i NHN.
+
+---
+
+## Alarmathan
+
+Flere hundre instanser av Alertmanager, med integrasjoner mot Splunk, Zabbix og SCOM.
+
+- mTLS, nei.
+- API-nøkler, nei.
+- Service accounts fra 2002, nei.
+- OpenID, ja!
 
 ---
 
 ## Hva salmon er
 
+En identitet som ikke bare er menneskelig. En issuer for både mennesker og workloads.
+
+- En IDP for identiteter, ikke bare mennesker
+- Selvbetjening som hovedprinsipp
+- Et ønske om å møte klienten på midten
+- Sikkerhet og oversikt
+
+<!--
+Det er teamet som eier tjenesten, og dermed tilgangen til å delegere. Det skal være selvbetjent, ingen budbringer involvert.
+Salmon skal møte klientene sine behov, ikke omvendt.
+Salmon skal gjøre det enkelt for utviklere å etablere gode løsninger for autentisering. Målet er å gjøre slutt på sjonglering av API-nøkler, Keycloak og service accounts.
+-->
+
+---
+
+## Hvorfor orke et elegant oppsett nå?
+
+<!--
+Modellene skriver mye av koden i dag, også hos oss. Da er spørsmålet ikke om det blir gjort feil, men hvor åpenbare de er og hvor langt de rekker.
+- Forutsigbar modell: få konsepter (team, rolle, bevis, token), én vei inn. Da har modellen mindre å gjette, og gjetter sjeldnere feil.
+- Rotete oppsett er der modellen finner opp: en API-nøkkel limt inn i en .env, en service account med for mye tilgang, en kopi av en hemmelighet i en repo.
+- Kortlevde tokens med en identitet bak gjør at en feil er avgrenset og sporbar. En statisk nøkkel som havner på feil sted lever i et år.
+- Elegant betyr ikke komplisert. Det betyr at det riktige er det enkleste å gjøre, for mennesker og modeller.
+Ikke et argument mot å bruke modeller. Et argument for å gi dem noe forutsigbart å jobbe mot.
+-->
+
+- Modellene skriver koden. Vi eier feilene
+- En forutsigbar modell gir modellen mindre å gjette på, og dermed færre åpenbare feil
+- Den enkleste veien bør også være den riktige: team, rolle, bevis, token
+- Kortlevd identitet avgrenser en feil. En statisk nøkkel gjør det ikke
+
 ---
 
 ## Datamodellen
 
+Salmon er bygget rundt en team-drevet modell.
+
+- Et team kan ha flere tjenester
+- En tjeneste kan ha flere roller
+- En rolle kan ha flere utlån
+- Et team kan ha flere apps og identiteter
+- En identitet kan ha flere roller
+
 ---
 
+## Visualisert
+
+```mermaid
+%%{init: {"handDrawnSeed": 1, "fontFamily": "Helvetica, Arial, sans-serif", "flowchart": {"htmlLabels": true, "padding": 12}}}%%
+flowchart LR
+  subgraph A["Team DNS"]
+    direction TB
+    SA["Tjeneste: dns"]
+    RA["Rolle: dns.editor<br/>eies av team DNS"]
+    SA --- RA
+  end
+  subgraph B["Team LB"]
+    direction TB
+    RB["dns.editor<br/>lånt fra team DNS"]
+    K["Kari<br/>menneske"]
+    W["lb-controller<br/>workload"]
+    CR["credential: oidc<br/>issuer + subject"]
+    RB -- "delegerer selv" --> K
+    RB -- "delegerer selv" --> W
+    W --- CR
+  end
+  RA -. "låner bort" .-> RB
+  style RB stroke-dasharray: 6 4
+```
+
+---
+
+<!-- _class: skille -->
+
 ## Token exchange, flyten
+
+Kort forklart: Et bytte av et bevis mot en identitet noen andre stoler på.
+
+---
+
+## Token exchange, grundig forklart
+
+<!--
+A kommer med et bevis og sier hvilken applikasjon den vil til.
+Salmon gjør to ting. Først: hvem er dette? Så: hva får den gjøre mot akkurat denne applikasjonen? Det er teamet som eier B som bestemmer.
+Svaret legges i tokenet: identiteten, hvor det gjelder, hva det gir tilgang til, og hvor lenge.
+Koble til datamodellen: det er her utlånte roller virker. Har team DNS lånt dns.editor til team LB, og LB gitt den videre til Kari, ender det som en rolle i tokenet.
+
+Teknisk: dette er /token-endepunktet i aksjon.
+-->
+
+```mermaid
+%%{init: {"handDrawnSeed": 1, "sequence": {"width": 175}}}%%
+sequenceDiagram
+  actor A as Identitet A<br/>menneske eller workload
+  participant S as Salmon
+  A->>S: bevis + hvilken applikasjon<br/>jeg vil til (B)
+  Note over S: 1. Hvem er dette?<br/>beviset sjekkes og byttes mot<br/>en identitet vi stoler på
+  Note over S: 2. Hva får A gjøre mot B?<br/>team C bestemmer<br/>f.eks. bucket.read
+  S-->>A: token<br/>identitet A, gjelder bare hos B,<br/>bucket.read, kort levetid
+```
+
+---
+
+## Hva er et bevis?
+
+- En service account fra 2002?
+- En SPIFFE-identitet (SVID)
+- Et sertifikat
+- En Kubernetes service account
+- En potet, neida.
+
+<!--
+Protokollen setter ingen grenser for hva som er et bevis. Det handler om hva man definerer som sikkert.
+Protokollen er utvidbar og kan tilpasses behov. Salmon støtter JWT i dag, resten er hva vi kan bygge.
+Pause før poteten.
+-->
+
+---
+
+## Under panseret: /token
+
+<!--
+Selve byttet er ett POST-kall: A sender beviset sitt til utstederen.
+- grant_type sier at dette er et bytte (RFC 8693)
+- subject_token er beviset, subject_token_type sier hva slags bevis det er
+- audience er applikasjonen A vil til
+Svaret er et nytt token, utstedt av den vi byttet hos.
+Eksempelet bruker Zitadel for å vise formen. Zitadel støtter ikke dette byttet, men Salmon har samme endepunkt og tar imot nøyaktig det samme kallet, bare med Salmons adresse.
+-->
+
+```bash
+curl -s https://zitadel.dataverket.org/oauth/v2/token \
+  -d grant_type=urn:ietf:params:oauth:grant-type:token-exchange \
+  -d subject_token="$BEVIS" \
+  -d subject_token_type=urn:ietf:params:oauth:token-type:jwt \
+  -d audience=applikasjon-b
+```
+
+```json
+{
+  "access_token": "eyJhbGciOi…",
+  "issued_token_type": "urn:ietf:params:oauth:token-type:access_token",
+  "token_type": "Bearer",
+  "expires_in": 900
+}
+```
+
+Eksempel på formen, forkortet.
+
+---
+
+## Applikasjonen verifiserer
+
+<!--
+Applikasjon B stoler på Salmon, ikke på A. Den sjekker at tokenet er ekte, at det er laget for den, og at tilgangen står der.
+Nøklene henter B én gang. Salmon er ikke på den varme stien, så en Salmon som er nede stopper bare nye tokens.
+Poenget å ende på: B trenger ikke å vite noe om hvordan A beviste hvem den var.
+-->
+
+```mermaid
+%%{init: {"handDrawnSeed": 1, "sequence": {"width": 175}}}%%
+sequenceDiagram
+  actor A as Identitet A
+  participant B as Applikasjon B<br/>eies av team C
+  participant S as Salmon
+  A->>B: kall med token
+  Note over B: Er tokenet ekte, ikke utløpt<br/>og laget for meg?<br/>Står bucket.read i det?
+  S-->>B: signeringsnøkler, hentet én gang<br/>ikke per kall
+  B-->>A: tillatt
+```
+
+B spør ikke Salmon for hvert kall. Svaret ligger i tokenet: hvem, hvilken applikasjon, hva.
+
+---
+
+## Under panseret: hvorfor henter B openid-configuration?
+
+<!--
+B har fått et token og må avgjøre om det er ekte. Den har ingen nøkler fra før, og skal ikke ha det heller.
+1. Tokenet sier selv hvem som har utstedt det (iss) og hvilken nøkkel som signerte det (kid i headeren).
+2. B stoler bare på utstedere den er satt opp til å stole på. Står iss ikke på listen, er det over.
+3. B spør utstederen hvor nøklene er: GET {iss}/.well-known/openid-configuration. Det er discovery. Svaret peker på jwks_uri.
+4. B henter nøklene fra jwks_uri (offentlige nøkler), velger den med riktig kid og sjekker signaturen.
+5. Så sjekker den resten: iss stemmer, aud er meg, exp har ikke gått ut, rollen står der.
+Poenger:
+- Ingen hardkodede nøkler. Utstederen kan bytte nøkkel uten at B må endres: B henter på nytt når den ser en ukjent kid.
+- B henter dette én gang og husker det, ikke per kall. Utstederen er ikke på den varme stien.
+- Samme prosedyre virker mot Zitadel, Salmon, og alt annet som følger OIDC. Her vist mot Zitadel.
+-->
+
+```bash
+curl -s https://zitadel.dataverket.org/.well-known/openid-configuration \
+  | jq '{issuer, token_endpoint, jwks_uri}'
+```
+
+```json
+{
+  "issuer": "https://zitadel.dataverket.org",
+  "token_endpoint": "https://zitadel.dataverket.org/oauth/v2/token",
+  "jwks_uri": "https://zitadel.dataverket.org/oauth/v2/keys"
+}
+```
+
+1. Tokenet sier hvem som utstedte det (`iss`) og hvilken nøkkel som signerte det (`kid`)
+2. B spør utstederen hvor nøklene er (`jwks_uri`)
+3. B sjekker signatur, mottaker, og at tokenet ikke er utløpt
+
+---
+
+## Visjonen: ett rammeverk for klienter
+
+<!--
+Skisse, ikke implementert. Poenget er hvordan det skal føles å bruke Salmon.
+- Klienten sier hva den har (et bevis, her en Kubernetes service account) og hvem den vil til (audience). Resten er Salmons sak.
+- Ingen hemmeligheter i koden. Ingen token-håndtering, ingen discovery, ingen fornying.
+- Bevistypen kan byttes uten at resten endres. Det er «hva er et bevis» som kode.
+- Mindre å gjøre feil på, for mennesker og for modeller.
+Salmon gir klienten et token. Det applikasjonen gjør med det (her å skrive til en bøtte) er applikasjonens sak.
+-->
+
+```go
+client, err := salmon.New().
+    WithContext(ctx).
+    WithAuth(salmon.OidcAuth(salmon.Kubernetes())).
+    WithAudience("applikasjon-b")
+
+app.
+    WithContext(ctx).
+    WithClient(client).
+    WriteBucket("my-bucket", bucketData{})
+```
+
+Skisse, ikke implementert.
 
 ---
 
 ## Hva som mangler
+
+<!--
+Vær ærlig her. Det er det som gjør resten troverdig.
+Det som finnes: bytte av et JWT-bevis mot et token, team og workloads, kortlevde tokens.
+- Utlån av roller mellom team: hele «låner bort»-delen i datamodellen. Modellen er tegnet, koden er ikke skrevet.
+- Roller og tilgang i tokenet: i dag sier tokenet bare hvem. Det skal også si hva, og for hvilken applikasjon.
+- Mennesket bak maskinen (RFC 8693 act): et menneske som delegerer til en workload, slik at sporbarheten følger med.
+- Flere typer bevis: i dag JWT. SPIFFE og sertifikater krever mer.
+- Rammeverk for klienter: skissen på forrige slide. Ingen kode ennå.
+Dette er også ønskelisten: det vi ikke bygger alene.
+-->
+
+- Utlån av roller mellom team
+- Roller og tilgang i tokenet, ikke bare hvem
+- Mennesket bak maskinen: delegering som følger med
+- Flere typer bevis: SPIFFE, sertifikater
+- Rammeverk for klienter
 
 ---
 
@@ -540,6 +798,6 @@ Dem imellom, 8 minutter. Først tre om Salmon, så tre om Dataverket.
 
 **Hvem kjører hva på den?** `sub` er mennesket som har ansvaret, `act` er prosessen som handler for det, utstedt av en STS på en grant mennesket selv ga, slik workload identity gjør det hos skyleverandørene. STS-en finnes ikke ferdig i dag. Linus har begynt å skrive den.
 
-Bli med i Dataverket: medlem@dataverket.org
+Bli med i Dataverket: <medlem@dataverket.org>
 
 <!-- Publikum tar over herfra, eller vi avslutter. -->
