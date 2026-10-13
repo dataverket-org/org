@@ -12,6 +12,8 @@ style: |
   section.skille p { color: #555; }
   section.sporsmal { display: flex; flex-direction: column; justify-content: center; }
   section.sporsmal h2 { font-size: 1.6em; }
+  section.foto .kilde { position: absolute; right: 30px; bottom: 30px; padding: 0.3em 0.6em; background: rgba(0, 0, 0, 0.75); color: #fff; font-size: 0.75em; border-radius: 4px; }
+  section.foto .kilde a { color: #fff; }
 ---
 
 <!--
@@ -32,6 +34,15 @@ Skilleark har class skille, Q&A-bildene class sporsmal.
 Maskinidentitet, delegering og tillit med åpen kildekode
 
 Containerkonferansen | Trondheim, 14. oktober 2026 | Jan Ivar Beddari og Linus Johansen
+
+---
+
+<!-- _class: foto -->
+<!-- _paginate: false -->
+
+![bg](content/nrk-koid32005624.jpg)
+
+<div class="kilde">Kilde: <a href="https://tv.nrk.no/program/KOID32005624">https://tv.nrk.no/program/KOID32005624</a></div>
 
 ---
 
