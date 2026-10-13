@@ -819,6 +819,10 @@ Svaret i én setning: Identitet sin egen sub, alltid, uansett hvilken backend Ka
 
 ## Men hva er egentlig Dataverket?
 
+<style scoped>img { display: block; margin: 1.2em auto 0; height: 260px; }</style>
+
+![servere](content/dataverket-servere.svg)
+
 <!--
 Linus spør, Jan Ivar svarer kort. Så går ordet til salen.
 Svaret i én setning: et åpen kildekode-kontrollplan for suveren skyinfrastruktur, og et initiativ for kunnskapsdeling og diskusjon om teknisk suverenitet.
@@ -833,9 +837,9 @@ Svaret i én setning: et åpen kildekode-kontrollplan for suveren skyinfrastrukt
 
 ## Bli med i Dataverket
 
-- Bli medlem: <medlem@dataverket.org>
+- Send oss en melding: <medlem@dataverket.org>
 - Koden: <https://git.dataverket.org>
-- Signal-gruppa: <https://signal.dataverket.org>
+- Signal-gruppa: signal dataverket dot org →
 
 <!--
 Står mens salen spør. QR-koden går til Signal-gruppa.

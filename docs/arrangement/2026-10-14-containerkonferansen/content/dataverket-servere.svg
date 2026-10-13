@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 872 352" role="img">
+  <title>Tre servere med Dataverket-logoen i rødt, hvitt og blått</title>
+  <g transform="translate(6,6)">
+    <rect width="260" height="340" rx="22" fill="#BA0C2F" stroke="#29384A" stroke-width="6"/>
+    <g transform="translate(66.4,34) scale(0.15)" fill="#FFFFFF"><path d="M89 120H249V250H349V120H499V250H599V120H759V280L699 380L710 617H476V517A52 52 0 0 0 372 517V617H138L149 380L89 280Z"/><rect x="29" y="685" width="791" height="196" rx="48"/><rect x="29" y="949" width="791" height="196" rx="48"/></g>
+    <rect x="34" y="248" width="150" height="16" rx="6" fill="#000000" fill-opacity="0.35"/>
+    <rect x="34" y="278" width="150" height="16" rx="6" fill="#000000" fill-opacity="0.35"/>
+    <circle cx="214" cy="256" r="9" fill="#22C55E" stroke="#29384A" stroke-width="2"/>
+    <circle cx="214" cy="286" r="9" fill="#FACC15" stroke="#29384A" stroke-width="2"/>
+  </g>
+  <g transform="translate(306,6)">
+    <rect width="260" height="340" rx="22" fill="#FFFFFF" stroke="#29384A" stroke-width="6"/>
+    <g transform="translate(66.4,34) scale(0.15)" fill="#0A2A5E"><path d="M89 120H249V250H349V120H499V250H599V120H759V280L699 380L710 617H476V517A52 52 0 0 0 372 517V617H138L149 380L89 280Z"/><rect x="29" y="685" width="791" height="196" rx="48"/><rect x="29" y="949" width="791" height="196" rx="48"/></g>
+    <rect x="34" y="248" width="150" height="16" rx="6" fill="#29384A" fill-opacity="0.35"/>
+    <rect x="34" y="278" width="150" height="16" rx="6" fill="#29384A" fill-opacity="0.35"/>
+    <circle cx="214" cy="256" r="9" fill="#22C55E" stroke="#29384A" stroke-width="2"/>
+    <circle cx="214" cy="286" r="9" fill="#FACC15" stroke="#29384A" stroke-width="2"/>
+  </g>
+  <g transform="translate(606,6)">
+    <rect width="260" height="340" rx="22" fill="#0A2A5E" stroke="#29384A" stroke-width="6"/>
+    <g transform="translate(66.4,34) scale(0.15)" fill="#FFFFFF"><path d="M89 120H249V250H349V120H499V250H599V120H759V280L699 380L710 617H476V517A52 52 0 0 0 372 517V617H138L149 380L89 280Z"/><rect x="29" y="685" width="791" height="196" rx="48"/><rect x="29" y="949" width="791" height="196" rx="48"/></g>
+    <rect x="34" y="248" width="150" height="16" rx="6" fill="#000000" fill-opacity="0.35"/>
+    <rect x="34" y="278" width="150" height="16" rx="6" fill="#000000" fill-opacity="0.35"/>
+    <circle cx="214" cy="256" r="9" fill="#22C55E" stroke="#29384A" stroke-width="2"/>
+    <circle cx="214" cy="286" r="9" fill="#FACC15" stroke="#29384A" stroke-width="2"/>
+  </g>
+</svg>
