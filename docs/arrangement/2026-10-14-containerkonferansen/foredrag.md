@@ -22,7 +22,7 @@ Skjelett. Tidsbudsjett, 45 minutter:
   5–22   Kontrollplanet, Jan Ivar
   22–34  Salmon, Linus
   34–36  Ønskelisten, begge
-  36–44  Spørsmål dem imellom: først tre om Salmon fra Jan Ivar, så tre om Dataverket fra Linus
+  36–44  Spørsmål dem imellom: to fra Jan Ivar til Linus, to fra Linus til Jan Ivar, til slutt hva Dataverket er
   44–45  Publikum, eller avslutt
 Skilleark har class skille, Q&A-bildene class sporsmal.
 -->
@@ -750,94 +750,62 @@ Begge, 2 minutter
 
 ## Spørsmål og svar
 
-Først oss, så dere?
-
 ---
 
 <!-- _class: sporsmal -->
 
-## Om Salmon, 1
-
-Tokenet sier bare at workloaden finnes. Hva er det minste du vil ha med i det, og hva skal mottakeren avgjøre selv?
+## Hva er det minste et token må si, og hva skal mottakeren avgjøre selv?
 
 <!--
 Jan Ivar spør, Linus svarer.
-Stikkord: i dag iss, sub, aud=Salmon, exp. Ingen team, roller, client_id eller act. Callouten trenger org og roller for å velge konto og rettigheter, og aud lik seg selv, ikke Salmon. Hvor går grensen mot mottakerens egen Cedar-policy: roller i tokenet, rettigheter hos mottakeren?
+Stikkord: Salmon utsteder i dag iss, sub, aud=Salmon og exp. Ingen team, roller, client_id eller act. Callouten trenger org og roller for å velge konto og rettigheter, og aud lik seg selv, ikke Salmon. Grensen: roller i tokenet, rettigheter i mottakerens egen Cedar-policy.
 -->
 
 ---
 
 <!-- _class: sporsmal -->
 
-## Om Salmon, 2
-
-OpenBao stoler på clusteret i dag, og Keycloak 26.8 har act i preview. Hvorfor skrive en egen?
+## Tillit til en workload er én rad i Salmon. Kan en grant være det samme, med et menneske som subjekt?
 
 <!--
 Jan Ivar spør, Linus svarer.
-Stikkord, sjekket oktober 2026:
-- OpenBao 2.7: JWT-innlogging mot clusterets discovery og JWKS, CEL-roller, streng aud-sjekk. Ingen token exchange, ingen act. Én utsteder per mount.
-- Keycloak 26.8: token exchange-delegering i preview, sub=bruker, act=agent. Agenten kan logge inn med SA-tokenet (federated client authentication). Men begge tokens må være Keycloaks egne, agenten må holde brukerens token, og may_act kommer i det bare når hun logger inn med scopet. En administrator, ikke brukeren, bestemmer hvem som får delegeres til. Jobben som går hver natt i et år passer ikke.
-- Salmon: tillit til en workload er én rad, utsteder per rad, RFC 8693 i ett kall, team og selvbetjening. Ærlig: aud sjekkes ikke ennå, og actor_token leses og kastes.
+Stikkord: i dag må subject_token peke på en Workload med en credential-rad. Et menneske har ingen slik rad, og Salmon tar ikke sine egne tokens som input. actor_token leses og kastes. En grant som rad: menneske, workload, org, slettet når. Kan radene bli et API Sentral snakker med, slik at workload og grant er ressurser med egen ID, som på løsningsslidet?
 -->
 
 ---
 
 <!-- _class: sporsmal -->
 
-## Om Salmon, 3
-
-Tillit til en workload er én rad hos deg. Kan en grant være det samme, og hva må til for at et menneske kan være subjekt?
-
-<!-- Jan Ivar spør, Linus svarer. Forslag: tillit til en workload er én rad i Salmon, med dashbord. Kan en grant være samme slags rad, menneske, workload, org, slettet når? Og kan radene bli et API Sentral snakker med, slik at workload og grant er ressurser med egen ID? Hva må til for at et menneske kan være subjekt? -->
-
----
-
-<!-- _class: sporsmal -->
-
-## Om Dataverket, 1
-
-Hvis Identitet får Keycloak ved siden av Zitadel, hvem er brukeren i Sentral?
+## OpenBao og Keycloak finnes. Hvorfor trenger vi en egen STS?
 
 <!--
-Linus spør, Jan Ivar svarer. Fra notatet: når Kari kommer inn via kubelogin, er «brukeren» i Sentral Zitadel-sub eller STS-sub? Og hva om samme menneske kommer fra en annen utsteder i morgen?
-Stikkord: callouten stoler på én utsteder, STS-en. Bak den kan Identitet ha flere backends, Zitadel og Keycloak, men sub i Sentral må være Identitets egen og stabil, ikke backendens. Det er samme grunn som at Salmon utsteder egen sub for workloads. Keycloak som andre backend gir et valg for dem som alt kjører det, og den har act i preview.
+Linus spør, Jan Ivar svarer. Linus kan legge til hvorfor Salmon. Sjekket mot kildekoden, oktober 2026.
+- OpenBao 2.7 løser første halvdel: JWT-innlogging mot clusterets discovery og JWKS, CEL-roller, streng aud-sjekk. Kunne erstattet nøkkelen i Secret i dag. Men ingen token exchange og ingen act: token-endepunktet tar bare authorization_code og client_credentials, og i identity tokens er sub alltid den som kaller. To steg via et eget Bao-token, én utsteder per mount. Hver tjeneste, Sentral, RadosGW STS, Incus, OpenStack, ville sett controlleren, ikke Kari.
+- Keycloak 26.8 har delegering i preview, sub=bruker, act=agent, og tar SA-tokenet som klientinnlogging. Men vekslingen godtar bare Keycloaks egne tokens, agenten må holde brukerens token, may_act kommer bare ved innlogging med scopet, og en administrator, ikke brukeren, bestemmer hvem som får delegeres til. Ingen refresh. Jobben som går hver natt i et år passer ikke.
+- Det vi trenger: en grant Kari selv gir én gang og sletter når hun vil, og en controller som aldri ser tokenet hennes. Får Keycloak varige, selvbetjente grants, kan STS-en bli tynnere. Det er ønskelisten.
+- Salmon: tillit til en workload er én rad, utsteder per rad, RFC 8693 i ett kall, team og selvbetjening. Ærlig: aud sjekkes ikke ennå.
 -->
 
 ---
 
 <!-- _class: sporsmal -->
 
-## Om Dataverket, 2
-
-Hvorfor ikke bare OpenBao?
+## Hvis Identitet får flere backends, hvem er brukeren i Sentral?
 
 <!--
-Linus spør, Jan Ivar svarer: hvorfor ikke bare OpenBao?
-Svar: OpenBao kunne erstattet nøkkelen i Secret i dag. Den logger inn poden med SA-tokenet mot clusterets discovery og JWKS, med CEL-roller og streng aud-sjekk. Det er første halvdel.
-Men OpenBao er ikke godt egnet som felles utsteder for et kontrollplan med mange tjenester: Sentral, RadosGW S3 STS med AssumeRoleWithWebIdentity, Incus, OpenStack og så videre. Alle vil ha en vanlig OIDC-JWT fra én utsteder, der sub er mennesket.
-- Ingen token exchange. Token-endepunktet tar bare authorization_code og client_credentials, og client_credentials bare med statisk hemmelighet.
-- Ingen act. I identity tokens er sub alltid entity-en som gjør kallet. Kari kan ikke være sub når controlleren er den som spør.
-- To steg via et eget Bao-token, og én utsteder per mount, altså én mount per cluster.
-Hver tjeneste ville sett controlleren, ikke Kari. OpenBao er bygget rundt sitt eget token og sine hemmeligheter, ikke som STS. Sjekket mot kildekoden, 2.7.1, oktober 2026.
+Linus spør, Jan Ivar svarer. Fra notatet: når Kari kommer inn via kubelogin, er brukeren Zitadel-sub eller STS-sub? Og hva om hun kommer fra en annen utsteder i morgen?
+Stikkord: callouten stoler på én utsteder, STS-en. Bak den kan Identitet ha Zitadel og Keycloak, men sub i Sentral må være Identitets egen og stabil, ikke backendens. Samme grunn som at Salmon utsteder egen sub for workloads. Keycloak som andre backend gir et valg for dem som alt kjører det.
 -->
 
 ---
 
 <!-- _class: sporsmal -->
 
-## Om Dataverket, 3
-
-Keycloak 26.8 kan sette act. Trenger dere fortsatt en egen STS?
+## Men hva er egentlig Dataverket?
 
 <!--
-Linus spør, Jan Ivar svarer.
-Stikkord: kanskje ikke for alltid, og det er bra. I dag passer det ikke med modellen på løsningsslidet:
-- Controlleren ser aldri Karis token. I Keycloak må agenten ha brukerens token som subject_token.
-- Granten gis én gang og lever til Kari sletter den. I Keycloak kommer may_act i brukerens token bare ved innlogging med scopet, en administrator bestemmer hvem som får delegeres til, og delegerte tokens har ikke refresh.
-- SA-tokens fra flere clustere må inn som bevis. Keycloak tar dem som klientautentisering, men vekslingen godtar bare Keycloaks egne tokens.
-- Preview, av som standard, ikke for produksjon.
-Hvis Keycloak får varige grants, kan STS-en bli tynnere eller forsvinne. Ønskelisten er nettopp dette.
+Linus spør, Jan Ivar svarer kort. Så går ordet til salen.
+Stikkord: et åpen kildekode-kontrollplan for suveren skyinfrastruktur. Go, AGPL v3. Maskin, Nett, Objekt og Plattform rundt Sentral, ett NATS-cluster der alle meldinger er CloudEvents. Én organisasjon er ett sikkerhetsdomene, ved nøkkel og ikke ved regel. Alle logger inn ett sted, alt logges mot en identitet. Koden skal kunne kjøres og driftes uten oss. Bli med: medlem@dataverket.org
 -->
 
 ---
