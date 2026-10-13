@@ -50,8 +50,6 @@ Containerkonferansen | Trondheim, 14. oktober 2026 | Jan Ivar Beddari og Linus J
 
 ## Hvilken maskin er dette, og hvem kjører hva på den?
 
-Innledning, 5 minutter, begge
-
 ---
 
 ## Hvorfor står vi her
@@ -62,9 +60,9 @@ Linus: identitetsplattformene er laget for mennesker. RFC 8693 er lest, men ikke
 Vi fant hverandre fordi vi manglet det samme.
 -->
 
-- Jan Ivar: UH-sky / NREC, ti år i Safespring med hendelsesdrevne kontrollplan. I 2026: Dataverket, et åpent kontrollplan for suveren skyinfrastruktur
+- Jan Ivar: UH-sky / NREC, ti år i Safespring med hendelsesdrevne kontrollplan. I 2026: Dataverket, et åpen kildekode-kontrollplan for suveren skyinfrastruktur
 - Linus: salmon, en identitetsleverandør for mennesker og arbeidslaster, skrevet fordi de som finnes er bygget for mennesker
-- Vi traff samme vegg fra hver vår side: en maskin som skal handle for et menneske, utenfor clusteret den bor i
+- Vi traff samme vegg fra hver vår side: en maskin som skal jobbe på vegne av et menneske, utenfor clusteret den bor i
 
 ---
 
@@ -92,7 +90,7 @@ Første halvdel av spørsmålet er besvart, så langt clusteret rekker. Se etter
 }
 ```
 
-Prosess, maskin og organisasjon står i tokenet. Kort levetid, bundet til poden, signert av clusterets egen OIDC-utsteder. RBAC sjekker bare verb, ressurs og namespace.
+Prosess og maskin står i tokenet, men med standardoppsett bare innenfor ett cluster: `iss` er den samme overalt. *Men, med egen utsteder per cluster kan noen utenfor stole på det.*
 
 Ingen claim sier hvilket menneske som har ansvaret.
 
@@ -138,7 +136,7 @@ Enten Kari gjør det nå eller en jobb gjør det hver natt i et år: tilgangen u
 
 <!--
 Operatormønsteret er ti år gammelt, og vi har levd med at loggen sier «controller». En agent er noe annet: den velger selv hva den gjør, med nøkler noen ga den én gang.
-Når maskinen bare gjør det koden sier, følger handlingen av noe et menneske skrev. Da går det an å finne mennesket i etterkant: ressursen i clusteret, git-historikken, hvem som godkjente. Tungvint, men mulig. Når maskinen velger selv, følger ikke handlingen av koden lenger, og samme agent handler for mange mennesker. Koden peker på den som satte agenten i gang, ikke på den som ba om akkurat denne handlingen. Det står ingen steder, med mindre det ble registrert idet det skjedde. Derfor må mennesket finnes i tokenet og logges når det skjer.
+Når maskinen bare gjør det koden sier, følger handlingen av noe et menneske skrev. Da går det an å finne mennesket i etterkant: ressursen i clusteret, git-historikken, hvem som godkjente. Tungvint, men mulig. Når maskinen velger selv, følger ikke handlingen av koden lenger, og samme agent jobber på vegne av mange mennesker. Koden peker på den som satte agenten i gang, ikke på den som ba om akkurat denne handlingen. Det står ingen steder, med mindre det ble registrert idet det skjedde. Derfor må mennesket finnes i tokenet og logges når det skjer.
 -->
 
 - Operatorer, GitOps-controllere og CI-runnere har gjort jobben for oss i ti år. Vi har godtatt at loggen sier «controller»
@@ -169,7 +167,7 @@ Til slutt: Vår ønskeliste til alle, så hver av oss slipper å bygge dette ale
 
 ## Kontrollplanet
 
-Hvilken prosess på hvilken maskin er dette? Jan Ivar, 17 minutter
+Hvilken prosess på hvilken maskin er dette?
 
 ---
 
@@ -336,7 +334,7 @@ Sentral leser aldri `data`. Resten er nok til å rute, tillate og logge.
 
 <!--
 Samme melding som forrige slide.
-- Emnet utledes av type og subject. Rettighetene er emnemønstre gitt ved CONNECT, så serveren matcher uten å lese noe annet.
+- Emnet utledes av type og subject. Rettighetene er emnemønstre gitt ved CONNECT, så serveren matcher uten å lese noe annet. Cedar ble evaluert én gang, ved CONNECT, og er ikke med når meldinga sendes.
 - Avvises meldinga, er det NATS-serveren som avviser den, og ingen tjeneste ser den.
 Auditloggen er principalen fra CONNECT pluss konvolutten: hvem, hva og hvilken ressurs. Den finnes før tjenesten har sett meldinga. I dag er «hvem» prosessen.
 Når STS-en kommer, er det bare principal-boksen som endres. Neste slide.
@@ -348,13 +346,13 @@ RBAC sjekker bare verb, ressurs og namespace. Sentral sjekker bare type, ressurs
 ```mermaid
 %%{init: {"handDrawnSeed": 1, "fontFamily": "Helvetica, Arial, sans-serif", "flowchart": {"htmlLabels": true, "padding": 12}}}%%
 flowchart LR
-  K["konvolutten<br/>type + subject"]
-  SUBJ["NATS-emne<br/>a.maskin.server.srv-0042.create"]
   P["principal fra CONNECT<br/>sub=controller"]
-  J["pub-rettigheter i bruker-JWT<br/>fra Cedar ved CONNECT<br/>a.maskin.server.*.create"]
-  R{"match?"}
-  K --> SUBJ --> R
+  J["pub-rettigheter<br/>i bruker-JWT<br/>Cedar, ved CONNECT<br/>a.maskin.server.*.create"]
+  K["konvolutten<br/>per melding<br/>type + subject"]
+  SUBJ["NATS-emne<br/>a.maskin.server.srv-0042.create"]
+  R{"NATS-serveren:<br/>emne mot mønster?"}
   P --> J --> R
+  K --> SUBJ --> R
   R -- ja --> OK["levert til alle som lytter"]
   R -- nei --> NO["avvist av NATS-serveren<br/>ingen tjeneste ser den"]
   OK --> LOG["auditlogg: principal + konvolutt<br/>hvem, hva, hvilken ressurs<br/>før tjenesten har sett meldinga"]
@@ -365,13 +363,13 @@ flowchart LR
 ## Løsning: workload-delegering med RFC 8693
 
 <!--
-Hvem kjører hva på den: her begynner andre halvdel. Operatormønsteret fra innledningen, en controller handler for Kari, nå uten Secret.
+Hvem kjører hva på den: her begynner andre halvdel. Operatormønsteret fra innledningen, en controller jobber på vegne av Kari, nå uten Secret.
 Ingenting i Sentral endres fra forrige slide. STS-en bytter bare ut principalen: sub=kari, act=controller. Match og auditlogg er de samme.
 - Workload og grant er ressurser i Identitet med egen ID, opprettet og slettet gjennom Sentral som alle andre ressurser: identitet.workload.create med issuer og sub, identitet.grant.create med menneske, workload og org. Principalen er Kari, verifisert av callouten, så granten er bevist med hennes eget token. Revokering er en delete, med samme logg.
-- Granten gis én gang per workload, ikke per apply: controller i dette clusteret får handle for kari, i org A, til hun sletter den. Det er det samme som en federated credential i Azure eller en IAM-binding i Google, og Salmon har det alt som rader. Vi bygger det som workload identity. Forskjellen er at mennesket blir med i tokenet ut, slik AWS SourceIdentity følger en rollekjede.
+- Granten gis én gang per workload, ikke per apply: controller i dette clusteret får jobbe på vegne av kari, i org A, til hun sletter den. Det er det samme som en federated credential i Azure eller en IAM-binding i Google, og Salmon har det alt som rader. Vi bygger det som workload identity. Forskjellen er at mennesket blir med i tokenet ut, slik AWS SourceIdentity følger en rollekjede.
 - Eier. Kari logger inn i clusteret med Identitet og gjør apply. kube-apiserver logger kari, og Plattform merker ressursen med eier=kari fra den verifiserte brukeren, i et felt ingen andre får endre. Eieren beviser ingenting mot STS-en, den velger hvilken grant controlleren bruker for akkurat denne ressursen. Controlleren ser aldri Kari sitt token, og trenger det ikke. I Maskin og Objekt kommer eieren fra hendelsen som opprettet ressursen, principalen i konvolutten, uten noe ekstra.
 - Vekslingen: SA-tokenet mot clusterets JWKS, granten i Identitet finnes og er ikke slettet, eieren av ressursen er kari. Cedar sjekker alle tre. Beviset er granten pluss eieren: Kari ga lov med sitt eget token, og kube-apiserver har verifisert at det var hun som opprettet ressursen.
-- sub er mennesket. act er prosessen som handler for det. Kjeden kan nestes: controller for pipeline for Kari.
+- sub er mennesket. act er prosessen som jobber på vegne av det. Kjeden kan nestes: controller for pipeline for Kari.
 - 15 minutters levetid. aud er mottakeren, ikke utstederen. Poden trenger ingen Secret: TokenRequest gir et kortlevd SA-token med den audiencen vi ber om, og clusterets egen OIDC-utsteder signerer det.
 - Samme grant dekker jobben som går hver natt mot en S3-bøtte hos Objekt. Neste slide.
 Hver hendelse i Sentral kan spores til en person, også når en maskin sendte den.
@@ -419,7 +417,7 @@ Det vi trenger av en STS:
 - Tar imot Zitadels tokens for mennesker og tjenestebrukere.
 - Tar imot SA-tokens fra hvert clusters innebygde OIDC-utsteder.
 - Utsteder sub, act, aud, org og roller, slik callouten vil ha dem.
-- Leser workloads og grants fra Identitet, der de er ressurser med egen ID: hvem får handle for hvem, i hvilken org, til granten slettes. may_act som ressurs, slik Salmon alt har tillit til en workload som én rad.
+- Leser workloads og grants fra Identitet, der de er ressurser med egen ID: hvem får jobbe på vegne av hvem, i hvilken org, til granten slettes. may_act som ressurs, slik Salmon alt har tillit til en workload som én rad.
 Zitadels token exchange er GA, men bytter bare Zitadels egne tokens. Keycloak og de andre er bygget for mennesker.
 Objekt-tilfellet: jobben i clusteret veksler sitt SA-token hos STS-en mot et token med sub=kari og act=jobb, på samme slags grant som på forrige slide, gitt én gang og mulig å trekke tilbake. Objekt-gatewayen tar det tokenet i AssumeRoleWithWebIdentity og gir S3-nøkler som lever i timer, ikke år. Gatewayens egen logg navngir mennesket. Både versitygw og RadosGW gjør dette i dag, mot et token fra en utsteder de stoler på.
 Dette må alle som trenger delegert maskinidentitet bygge selv i dag. Linus har begynt. Overgang.
@@ -807,7 +805,7 @@ Dem imellom, 8 minutter. Først tre om Salmon, så tre om Dataverket.
 
 **Hvilken prosess på hvilken maskin er dette?** En konto i Sentral som speiler organisasjonen, et token som utløper, en konvolutt som avgjør. Ingen hemmeligheter å rotere.
 
-**Hvem kjører hva på den?** `sub` er mennesket som har ansvaret, `act` er prosessen som handler for det, utstedt av en STS på en grant mennesket selv ga, slik workload identity gjør det hos skyleverandørene. STS-en finnes ikke ferdig i dag. Linus har begynt å skrive den.
+**Hvem kjører hva på den?** `sub` er mennesket som har ansvaret, `act` er prosessen som jobber på vegne av det, utstedt av en STS på en grant mennesket selv ga, slik workload identity gjør det hos skyleverandørene. STS-en finnes ikke ferdig i dag. Linus har begynt å skrive den.
 
 Bli med i Dataverket: <medlem@dataverket.org>
 
