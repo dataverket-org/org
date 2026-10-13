@@ -513,4 +513,4 @@ Studere, dokumentere og bygge: hvordan bør vi gi hver organisasjon en "sikker" 
 
 **Skann koden og bli med i Signal-gruppa.** Det er der koordineringen skjer akkurat nå.
 
-Eller om du heller vil det, send en epost til medlem@dataverket.org og fortell hva du kan!
+Eller om du heller vil det, send en epost til hallo@dataverket.org og fortell hva du kan!

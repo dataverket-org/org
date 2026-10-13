@@ -828,7 +828,7 @@ Linus spør, Jan Ivar svarer kort. Så går ordet til salen.
 Svaret i én setning: et åpen kildekode-kontrollplan for suveren skyinfrastruktur, og et initiativ for kunnskapsdeling og diskusjon om teknisk suverenitet.
 - Go, AGPL v3. Maskin, Nett, Objekt og Plattform rundt Sentral, flere tjenester planlagt. Mennesker og maskiner logger inn på samme måte.
 - Én organisasjon er ett sikkerhetsdomene, ved nøkkel. Målbildet: 3 000 clustere i 300 sikkerhetsdomener.
-- Koden skal kunne kjøres og driftes uten oss. Bli med: medlem@dataverket.org
+- Koden skal kunne kjøres og driftes uten oss. Bli med: hallo@dataverket.org
 -->
 
 ---
@@ -837,7 +837,7 @@ Svaret i én setning: et åpen kildekode-kontrollplan for suveren skyinfrastrukt
 
 ## Bli med i Dataverket
 
-- Send oss en melding: <medlem@dataverket.org>
+- Send oss en melding: <hallo@dataverket.org>
 - Koden: <https://git.dataverket.org>
 - Signal-gruppa: signal dataverket dot org →
 

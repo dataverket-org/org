@@ -41,8 +41,8 @@ For ting som ikke passer i åpne kanaler. Typisk medlemskaps­forespørsler fra 
 
 | Tema                      | Kontakt                              |
 |---------------------------|--------------------------------------|
-| Medlemskap som leverandør | medlem@dataverket.org                |
-| Medlemskap som kunde      | medlem@dataverket.org                |
+| Medlemskap som leverandør | hallo@dataverket.org                 |
+| Medlemskap som kunde      | hallo@dataverket.org                 |
 | Presse                    | post@dataverket.org                  |
 | Sikkerhet og personvern   | sikkerhet@dataverket.org             |
 | Generelt                  | post@dataverket.org                  |
