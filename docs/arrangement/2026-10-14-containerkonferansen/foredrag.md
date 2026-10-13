@@ -73,6 +73,7 @@ Et projisert ServiceAccount-token, slik det ser ut i dag. Alle i salen har tusen
 - Kort levetid, bundet til poden, signert av clusterets egen OIDC-utsteder med discovery og JWKS.
 - RBAC sjekker bare verb, ressurs og namespace. Loggen i kube-apiserver vet hvem som gjorde hva.
 Første halvdel av spørsmålet er besvart, så langt clusteret rekker. Se etter mennesket i tokenet. Det er ikke der.
+Men: med egen utsteder per cluster, egen iss med discovery og JWKS, kan noen utenfor stole på tokenet. Det kommer vi tilbake til.
 -->
 
 ```json
@@ -90,7 +91,7 @@ Første halvdel av spørsmålet er besvart, så langt clusteret rekker. Se etter
 }
 ```
 
-Prosess og maskin står i tokenet, men med standardoppsett bare innenfor ett cluster: `iss` er den samme overalt. *Men, med egen utsteder per cluster kan noen utenfor stole på det.*
+Prosess og maskin står i tokenet, men med standardoppsett bare innenfor ett cluster: `iss` er den samme overalt.
 
 Ingen claim sier hvilket menneske som har ansvaret.
 
@@ -105,7 +106,7 @@ Kari gjør kubectl apply. Loggen i kube-apiserver sier kari. Controlleren ser en
 Tilgangen ut av clusteret er i dag en statisk nøkkel i en Secret. Et menneske laget den én gang, og den lever til noen husker å bytte den. Slik er det i Dataverket også.
 To tidsskalaer, samme hull. Interaktivt: Kari gjør noe nå, controlleren gjør det for henne. Over tid: en jobb som skriver til en S3-bøtte hos en annen operatør hver natt, med en access key noen laget i fjor. Begge må kunne spores til et menneske.
 På den andre siden sier loggen «controller». Kari er borte.
-De store skyleverandørene har løst dette for sine egne tjenester: IRSA hos AWS, Workload Identity Federation hos Google og Azure. Samme projiserte token, vekslet inn i en kortlevd nøkkel. Åpne identitetsløsninger er laget for mennesker og mangler tilsvarende. Zitadel veksler bare egne tokens, Keycloak er på vei.
+De store skyleverandørene har løst dette for sine egne tjenester: IRSA hos AWS, Workload Identity Federation hos Google og Azure. Samme projiserte token, vekslet inn i en kortlevd nøkkel. Åpne identitetsløsninger er laget for mennesker og mangler tilsvarende. Zitadel veksler bare egne tokens, Keycloak er på vei. OpenBao løser første halvdel: JWT-innlogging mot clusterets discovery og JWKS, med streng aud-sjekk. Men den har verken token exchange eller act, så mennesket blir ikke med.
 -->
 
 ```mermaid
@@ -128,7 +129,7 @@ flowchart TB
   K -- "Secret med access key, laget av et menneske, en gang" --> U
 ```
 
-Enten Kari gjør det nå eller en jobb gjør det hver natt i et år: tilgangen ut av clusteret er en statisk nøkkel som ble laget én gang. De store skyleverandørene har løst dette for sine egne tjenester. Åpne identitetsløsninger mangler tilsvarende.
+Enten Kari gjør det nå eller en jobb gjør det hver natt i et år: tilgangen ut av clusteret er vanligvis en statisk nøkkel som ble gitt og lagret. De store skyleverandørene har løst dette for sine egne tjenester med workload identity federation. Åpne løsninger kan ikke per i dag ta mennesket med.
 
 ---
 
@@ -154,10 +155,10 @@ Dette er disposisjonen. Første halvdel har Dataverket svar på, og Jan Ivar vis
 -->
 
 **Hvilken prosess på hvilken maskin er dette?**
-Server, VM eller pod: hvilken organisasjon hører den til, og hvordan beviser den det uten en nøkkel? Det har vi svar på. Jan Ivar viser hvordan.
+Server, VM eller pod: hvilken organisasjon hører den til, og hvordan beviser den det uten en nøkkel? Det har vi svar på. Jan Ivar viser hvordan Dataverket sitt kontrollplan er bygget.
 
 **Men HVEM kjører hva på den??!**
-Mennesket med ansvar for maskina må følge med i tokenet, ut av clusteret og inn i loggen. Dette har ingen gode svar på i dag. Linus har begynt på relevant kode!
+Mennesket med ansvar for prosessen må følge med i tokenet, ut av clusteret og inn i loggen. Dette har ingen gode svar på i dag. Linus har begynt på relevant kode!
 
 Til slutt: Vår ønskeliste til alle, så hver av oss slipper å bygge dette alene.
 
@@ -789,7 +790,15 @@ Dem imellom, 8 minutter. Først tre om Salmon, så tre om Dataverket.
 
 ## Om Dataverket, 2
 
-<!-- Linus spør, Jan Ivar svarer. -->
+<!--
+Linus spør, Jan Ivar svarer: hvorfor ikke bare OpenBao?
+Svar: OpenBao kunne erstattet nøkkelen i Secret i dag. Den logger inn poden med SA-tokenet mot clusterets discovery og JWKS, med CEL-roller og streng aud-sjekk. Det er første halvdel.
+Men OpenBao er ikke godt egnet som felles utsteder for et kontrollplan med mange tjenester: Sentral, RadosGW S3 STS med AssumeRoleWithWebIdentity, Incus, OpenStack og så videre. Alle vil ha en vanlig OIDC-JWT fra én utsteder, der sub er mennesket.
+- Ingen token exchange. Token-endepunktet tar bare authorization_code og client_credentials, og client_credentials bare med statisk hemmelighet.
+- Ingen act. I identity tokens er sub alltid entity-en som gjør kallet. Kari kan ikke være sub når controlleren er den som spør.
+- To steg via et eget Bao-token, og én utsteder per mount, altså én mount per cluster.
+Hver tjeneste ville sett controlleren, ikke Kari. OpenBao er bygget rundt sitt eget token og sine hemmeligheter, ikke som STS. Sjekket mot kildekoden, 2.7.1, oktober 2026.
+-->
 
 ---
 
