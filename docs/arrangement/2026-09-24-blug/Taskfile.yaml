@@ -10,9 +10,10 @@
 # Chrome, Chromium, Firefox.
 #
 #   task                 list the targets
-#   task build           build html and pdf
+#   task build           build html and pdf, run it before every commit
 #   task --watch build   rebuild on every change to foredrag.md
-#   task dev             live reload in content/live.html, no pdf
+#   task dev             live reload in content/live.html only, does not
+#                        touch content/foredrag.html or content/foredrag.pdf
 version: '3'
 
 vars:
@@ -81,7 +82,7 @@ tasks:
       - sed 's#!\(\[[^]]*\]\)(content/#!\1(#g' content/foredrag.md > content/foredrag.tmp && mv content/foredrag.tmp content/foredrag.md
 
   dev:
-    desc: Keep the build copy current and let Marp render content/live.html with live reload
+    desc: Live reload in content/live.html. Does not update the committed html and pdf, run task build before commit
     cmds:
       # Marp exits if the build copy is missing at start.
       - task: copy
