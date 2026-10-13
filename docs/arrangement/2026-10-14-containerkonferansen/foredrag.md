@@ -60,20 +60,21 @@ Linus: identitetsplattformene er laget for mennesker. RFC 8693 er lest, men ikke
 Vi fant hverandre fordi vi manglet det samme.
 -->
 
-- Jan Ivar: UH-sky / NREC, ti år i Safespring med hendelsesdrevne kontrollplan. I 2026: Dataverket, et åpen kildekode-kontrollplan for suveren skyinfrastruktur
+- Jan Ivar: UH-sky / NREC, ti år i Safespring med hendelsesdrevne kontrollplan. Ideen om Dataverket - et åpen kildekode-kontrollplan for suveren skyinfrastruktur
 - Linus: salmon, en identitetsleverandør for mennesker og arbeidslaster, skrevet fordi de som finnes er bygget for mennesker
-- Vi traff samme vegg fra hver vår side: en maskin som skal jobbe på vegne av et menneske, utenfor clusteret den bor i
+- Vi fant samme mangel fra hver vår side: maskiner med behov for å jobbe på vegne av mennesker, utenfor clusteret den bor i
 
 ---
 
 ## I dag: hvilken prosess på hvilken maskin er dette?
 
 <!--
-Et projisert ServiceAccount-token, slik det ser ut i dag. Alle i salen har tusenvis av dem.
+Et eksempel på ServiceAccount-token, slik det ser ut i dag. Alle i salen har tusenvis av dem.
 - Kort levetid, bundet til poden, signert av clusterets egen OIDC-utsteder med discovery og JWKS.
-- RBAC sjekker bare verb, ressurs og namespace. Loggen i kube-apiserver vet hvem som gjorde hva.
-Første halvdel av spørsmålet er besvart, så langt clusteret rekker. Se etter mennesket i tokenet. Det er ikke der.
-Men: med egen utsteder per cluster, egen iss med discovery og JWKS, kan noen utenfor stole på tokenet. Det kommer vi tilbake til.
+- RBAC sjekker verb, ressurs og namespace. Loggen i kube-apiserver vet hvem som gjorde hva.
+Første halvdel av spørsmålet er besvart, så langt clusteret rekker.
+- Potensielt problem: Det er ikke noen referanser til mennesket i tokenet.
+Men med egen utsteder per cluster, egen iss med discovery og JWKS, kan noen utenfor stole på tokenet. Det kommer vi tilbake til.
 -->
 
 ```json
@@ -103,7 +104,7 @@ Ingen claim sier hvilket menneske som har ansvaret.
 
 <!--
 Kari gjør kubectl apply. Loggen i kube-apiserver sier kari. Controlleren ser endringen og skal gjøre noe utenfor: et kontrollplan, en sky-API, et annet cluster, en meldingsbuss.
-Tilgangen ut av clusteret er i dag en statisk nøkkel i en Secret. Et menneske laget den én gang, og den lever til noen husker å bytte den. Slik er det i Dataverket også.
+Tilgangen ut av clusteret er i dag en statisk nøkkel i en Secret. Et menneske laget den én gang, og den lever til noen husker å bytte den. 
 To tidsskalaer, samme hull. Interaktivt: Kari gjør noe nå, controlleren gjør det for henne. Over tid: en jobb som skriver til en S3-bøtte hos en annen operatør hver natt, med en access key noen laget i fjor. Begge må kunne spores til et menneske.
 På den andre siden sier loggen «controller». Kari er borte.
 De store skyleverandørene har løst dette for sine egne tjenester: IRSA hos AWS, Workload Identity Federation hos Google og Azure. Samme projiserte token, vekslet inn i en kortlevd nøkkel. Åpne identitetsløsninger er laget for mennesker og mangler tilsvarende. Zitadel veksler bare egne tokens. Keycloak 26.8 har delegering med act i preview, men bare med brukerens eget token mens hun er logget inn. SA-tokenet kan den ta som klientinnlogging. OpenBao løser første halvdel: JWT-innlogging mot clusterets discovery og JWKS, med streng aud-sjekk. Men den har verken token exchange eller act, så mennesket blir ikke med.
@@ -129,7 +130,7 @@ flowchart TB
   K -- "Secret med access key, laget av et menneske, en gang" --> U
 ```
 
-Enten Kari gjør det nå eller en jobb gjør det hver natt i et år: tilgangen ut av clusteret er vanligvis en statisk nøkkel som ble gitt og lagret. De store skyleverandørene har løst dette for sine egne tjenester med workload identity federation. Åpne løsninger tar i beste fall mennesket med så lenge det er logget inn.
+Tilgang ut av clusteret er vanligvis en statisk nøkkel som ble gitt og lagret. De store skyleverandørene har løst dette med **workload identity federation**.
 
 ---
 
@@ -151,7 +152,7 @@ Når maskinen bare gjør det koden sier, kan vi finne mennesket i etterkant, i k
 ## Ett problem, to halvdeler
 
 <!--
-Dette er disposisjonen. Første halvdel har Dataverket svar på, og Jan Ivar viser hvordan: organisasjon blir konto, token blir tilkobling, konvolutten avgjør. Andre halvdel er hullet. Jan Ivar viser hvor det er, Linus viser det han har bygget for å fylle det. Til slutt ønskelista.
+Dette er disposisjonen. Første halvdel har Dataverket svar på, og Jan Ivar viser hvordan: organisasjon blir konto, token blir tilkobling, konvolutten avgjør. Andre halvdel er hullet. Jan Ivar viser hvor det er, Linus viser det han har bygget som kan hjelpe å fylle det. Til slutt ønskelista.
 -->
 
 **Hvilken prosess på hvilken maskin er dette?**
@@ -170,6 +171,14 @@ Til slutt: Vår ønskeliste til alle, så hver av oss slipper å bygge dette ale
 
 Hvilken prosess på hvilken maskin er dette?
 
+Målbildet: 3 000 clustere i 300 sikkerhetsdomener.
+
+<!--
+Det er annerledes enn de fleste: ikke ett stort cluster med mange team, men mange clustere, hvert med sin egen OIDC-utsteder, fordelt på mange organisasjoner som ikke skal kunne se hverandre.
+- 300 sikkerhetsdomener er 300 organisasjoner, og 300 NATS-kontoer med egen nøkkel. Neste slides.
+- 3 000 utstedere betyr at tillit til et cluster må registreres selvbetjent, av den som eier det, ikke konfigureres sentralt én og én. Én mount eller én IdP per cluster, slik OpenBao og Keycloak gjør det, skalerer dårlig hit.
+-->
+
 ---
 
 ## Dataverket på ett bilde
@@ -178,13 +187,14 @@ Hvilken prosess på hvilken maskin er dette?
 Premissene først, så bildet.
 - Alle logger inn ett sted. Ingen lokale brukere, ingen langlevde nøkler.
 - Alt som gjøres må logges, og loggen må peke på en identitet.
-- Én organisasjon er ett sikkerhetsdomene, kryptografisk, ikke ved policy.
+- Én organisasjon er ett sikkerhetsdomene, kryptografisk, ikke bare ved policy.
 - Koden skal kunne kjøres og driftes uten oss.
 Kravene er de samme som i NSM 2.1, 2.6, 2.7, CRA vedlegg I og DFØ B.IS.30–32. Vi bygger dem inn, ikke oppå.
 
 Bildet: Go, AGPL v3. Meldinger over NATS, alle som CloudEvents. Identitet er Zitadel i dag.
-To principals til venstre: et menneske og en controller-pod. Begge henter token fra Identitet, begge kobler til Sentral på samme måte. Plattform er Kubernetes, så dere er allerede i bildet.
-kube-apiserver i Plattform bruker også Identitet, med kubelogin. Kari har samme sub i clusterets auditlogg som i Sentrals. Det er forutsetningen for delegeringsslidet.
+To principals til venstre: et menneske og en controller-pod. Begge henter token fra Identitet, begge kobler til Sentral på samme måte. Plattform er Kubernetes.
+
+kube-apiserver i Plattform bruker også Identitet, med kubelogin. Kari har samme sub i clusterets auditlogg som i Sentral. Det er forutsetningen for delegeringsslidet.
 Dette er status nå. Poden henter token fra Identitet med en nøkkel i en Secret. STS-en og Salmon kommer på de tre siste slidene i min del.
 -->
 
@@ -222,10 +232,12 @@ flowchart LR
 
 <!--
 Hvilken maskin er dette, første del: hvilken organisasjon. Kryss-trafikk skal være umulig ved nøkkel, ikke sperret av en regel.
+
 - En NATS-konto har egen signeringsnøkkel. Et emne i konto A finnes ikke i konto B.
 - Hver organisasjon i Identitet blir én konto for mennesker og maskiner.
 - Hver tjeneste har sin egen konto, og importerer eksplisitt, emne for emne.
-- Ingen policy å glemme, ingen regel som kan skrives feil.
+- Ingen policy å glemme eller regler som kan skrives feil.
+
 I Kubernetes stopper NetworkPolicy trafikken. Her finnes det ingen trafikk å stoppe.
 Kontoen er grensen. Auth callout bestemmer hvem som slipper inn i den, neste bilde.
 -->
@@ -759,11 +771,15 @@ Stikkord: Salmon utsteder i dag iss, sub, aud=Salmon og exp. Ingen team, roller,
 
 <!-- _class: sporsmal -->
 
-## Tillit til en workload er én rad i Salmon. Kan en grant være det samme, med et menneske som subjekt?
+## Tillit til en workload er bare issuer og subject i Salmon. Kan en grant være like enkel, med et menneske som subjekt?
+
+*Kari lar en workload jobbe på vegne av henne.*
 
 <!--
 Jan Ivar spør, Linus svarer.
-Stikkord: i dag må subject_token peke på en Workload med en credential-rad. Et menneske har ingen slik rad, og Salmon tar ikke sine egne tokens som input. actor_token leses og kastes. En grant som rad: menneske, workload, org, slettet når. Kan radene bli et API Sentral snakker med, slik at workload og grant er ressurser med egen ID, som på løsningsslidet?
+Bakgrunn: tillit til en workload er en credential av typen oidc med issuer og subject, altså clusterets utsteder og ServiceAccounten. Teamet registrerer den selv, og ingen hemmelighet lages eller roteres.
+Eksempelet: granten er «controller i dette clusteret får jobbe på vegne av Kari, i org A, til hun sletter den». Den har fire felt: menneske, workload, org og når den er slettet. Kari gir den én gang med sitt eget token.
+Stikkord: i dag må subject_token peke på en workload med en slik credential. Et menneske har ingen, og Salmon tar ikke sine egne tokens som input. actor_token leses og kastes. Kan workload og grant bli ressurser med egen ID i et API Sentral snakker med, som på løsningsslidet?
 -->
 
 ---
@@ -777,7 +793,7 @@ Linus spør, Jan Ivar svarer. Linus kan legge til hvorfor Salmon. Sjekket mot ki
 - OpenBao 2.7 løser første halvdel: JWT-innlogging mot clusterets discovery og JWKS, CEL-roller, streng aud-sjekk. Kunne erstattet nøkkelen i Secret i dag. Men ingen token exchange og ingen act: token-endepunktet tar bare authorization_code og client_credentials, og i identity tokens er sub alltid den som kaller. To steg via et eget Bao-token, én utsteder per mount. Hver tjeneste, Sentral, RadosGW STS, Incus, OpenStack, ville sett controlleren, ikke Kari.
 - Keycloak 26.8 har delegering i preview, sub=bruker, act=agent, og tar SA-tokenet som klientinnlogging. Men vekslingen godtar bare Keycloaks egne tokens, agenten må holde brukerens token, may_act kommer bare ved innlogging med scopet, og en administrator, ikke brukeren, bestemmer hvem som får delegeres til. Ingen refresh. Jobben som går hver natt i et år passer ikke.
 - Det vi trenger: en grant Kari selv gir én gang og sletter når hun vil, og en controller som aldri ser tokenet hennes. Får Keycloak varige, selvbetjente grants, kan STS-en bli tynnere. Det er ønskelista.
-- Salmon: tillit til en workload er én rad, utsteder per rad, RFC 8693 i ett kall, team og selvbetjening. Ærlig: aud sjekkes ikke ennå.
+- Salmon: tillit til en workload er bare issuer og subject, registrert av teamet selv, RFC 8693 i ett kall, team og selvbetjening. Ærlig: aud sjekkes ikke ennå.
 -->
 
 ---
