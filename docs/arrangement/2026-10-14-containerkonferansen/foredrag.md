@@ -106,7 +106,7 @@ Kari gjør kubectl apply. Loggen i kube-apiserver sier kari. Controlleren ser en
 Tilgangen ut av clusteret er i dag en statisk nøkkel i en Secret. Et menneske laget den én gang, og den lever til noen husker å bytte den. Slik er det i Dataverket også.
 To tidsskalaer, samme hull. Interaktivt: Kari gjør noe nå, controlleren gjør det for henne. Over tid: en jobb som skriver til en S3-bøtte hos en annen operatør hver natt, med en access key noen laget i fjor. Begge må kunne spores til et menneske.
 På den andre siden sier loggen «controller». Kari er borte.
-De store skyleverandørene har løst dette for sine egne tjenester: IRSA hos AWS, Workload Identity Federation hos Google og Azure. Samme projiserte token, vekslet inn i en kortlevd nøkkel. Åpne identitetsløsninger er laget for mennesker og mangler tilsvarende. Zitadel veksler bare egne tokens, Keycloak er på vei. OpenBao løser første halvdel: JWT-innlogging mot clusterets discovery og JWKS, med streng aud-sjekk. Men den har verken token exchange eller act, så mennesket blir ikke med.
+De store skyleverandørene har løst dette for sine egne tjenester: IRSA hos AWS, Workload Identity Federation hos Google og Azure. Samme projiserte token, vekslet inn i en kortlevd nøkkel. Åpne identitetsløsninger er laget for mennesker og mangler tilsvarende. Zitadel veksler bare egne tokens. Keycloak 26.8 har delegering med act i preview, men bare med brukerens eget token mens hun er logget inn. SA-tokenet kan den ta som klientinnlogging. OpenBao løser første halvdel: JWT-innlogging mot clusterets discovery og JWKS, med streng aud-sjekk. Men den har verken token exchange eller act, så mennesket blir ikke med.
 -->
 
 ```mermaid
@@ -129,7 +129,7 @@ flowchart TB
   K -- "Secret med access key, laget av et menneske, en gang" --> U
 ```
 
-Enten Kari gjør det nå eller en jobb gjør det hver natt i et år: tilgangen ut av clusteret er vanligvis en statisk nøkkel som ble gitt og lagret. De store skyleverandørene har løst dette for sine egne tjenester med workload identity federation. Åpne løsninger kan ikke per i dag ta mennesket med.
+Enten Kari gjør det nå eller en jobb gjør det hver natt i et år: tilgangen ut av clusteret er vanligvis en statisk nøkkel som ble gitt og lagret. De store skyleverandørene har løst dette for sine egne tjenester med workload identity federation. Åpne løsninger tar i beste fall mennesket med så lenge det er logget inn.
 
 ---
 
@@ -419,9 +419,9 @@ Det vi trenger av en STS:
 - Tar imot SA-tokens fra hvert clusters innebygde OIDC-utsteder.
 - Utsteder sub, act, aud, org og roller, slik callouten vil ha dem.
 - Leser workloads og grants fra Identitet, der de er ressurser med egen ID: hvem får jobbe på vegne av hvem, i hvilken org, til granten slettes. may_act som ressurs, slik Salmon alt har tillit til en workload som én rad.
-Zitadels token exchange er GA, men bytter bare Zitadels egne tokens. Keycloak og de andre er bygget for mennesker.
+Zitadels token exchange er GA, men bytter bare Zitadels egne tokens. Keycloak har act i preview, men bare for den som er logget inn, og bare med Keycloaks egne tokens.
 Objekt-tilfellet: jobben i clusteret veksler sitt SA-token hos STS-en mot et token med sub=kari og act=jobb, på samme slags grant som på forrige slide, gitt én gang og mulig å trekke tilbake. Objekt-gatewayen tar det tokenet i AssumeRoleWithWebIdentity og gir S3-nøkler som lever i timer, ikke år. Gatewayens egen logg navngir mennesket. Både versitygw og RadosGW gjør dette i dag, mot et token fra en utsteder de stoler på.
-Dette må alle som trenger delegert maskinidentitet bygge selv i dag. Linus har begynt. Overgang.
+Dette må alle som trenger selvbetjent maskinidentitet bygge selv i dag: et workload identity-API der mennesket selv registrerer workloaden og gir granten, som på forrige slide. Linus har begynt. Overgang.
 -->
 
 Den stiplede boksen finnes ikke i dag. Linus har begynt å skrive den. Samme token åpner en S3-bøtte hos Objekt, uten access key i en Secret.
@@ -748,9 +748,9 @@ Begge, 2 minutter
 
 <!-- _class: skille -->
 
-## Spørsmål
+## Spørsmål og svar
 
-Dem imellom, 8 minutter. Først tre om Salmon, så tre om Dataverket.
+Først oss, så dere?
 
 ---
 
@@ -758,7 +758,12 @@ Dem imellom, 8 minutter. Først tre om Salmon, så tre om Dataverket.
 
 ## Om Salmon, 1
 
-<!-- Jan Ivar spør, Linus svarer. -->
+Tokenet sier bare at workloaden finnes. Hva er det minste du vil ha med i det, og hva skal mottakeren avgjøre selv?
+
+<!--
+Jan Ivar spør, Linus svarer.
+Stikkord: i dag iss, sub, aud=Salmon, exp. Ingen team, roller, client_id eller act. Callouten trenger org og roller for å velge konto og rettigheter, og aud lik seg selv, ikke Salmon. Hvor går grensen mot mottakerens egen Cedar-policy: roller i tokenet, rettigheter hos mottakeren?
+-->
 
 ---
 
@@ -766,13 +771,23 @@ Dem imellom, 8 minutter. Først tre om Salmon, så tre om Dataverket.
 
 ## Om Salmon, 2
 
-<!-- Jan Ivar spør, Linus svarer. -->
+OpenBao stoler på clusteret i dag, og Keycloak 26.8 har act i preview. Hvorfor skrive en egen?
+
+<!--
+Jan Ivar spør, Linus svarer.
+Stikkord, sjekket oktober 2026:
+- OpenBao 2.7: JWT-innlogging mot clusterets discovery og JWKS, CEL-roller, streng aud-sjekk. Ingen token exchange, ingen act. Én utsteder per mount.
+- Keycloak 26.8: token exchange-delegering i preview, sub=bruker, act=agent. Agenten kan logge inn med SA-tokenet (federated client authentication). Men begge tokens må være Keycloaks egne, agenten må holde brukerens token, og may_act kommer i det bare når hun logger inn med scopet. En administrator, ikke brukeren, bestemmer hvem som får delegeres til. Jobben som går hver natt i et år passer ikke.
+- Salmon: tillit til en workload er én rad, utsteder per rad, RFC 8693 i ett kall, team og selvbetjening. Ærlig: aud sjekkes ikke ennå, og actor_token leses og kastes.
+-->
 
 ---
 
 <!-- _class: sporsmal -->
 
 ## Om Salmon, 3
+
+Tillit til en workload er én rad hos deg. Kan en grant være det samme, og hva må til for at et menneske kan være subjekt?
 
 <!-- Jan Ivar spør, Linus svarer. Forslag: tillit til en workload er én rad i Salmon, med dashbord. Kan en grant være samme slags rad, menneske, workload, org, slettet når? Og kan radene bli et API Sentral snakker med, slik at workload og grant er ressurser med egen ID? Hva må til for at et menneske kan være subjekt? -->
 
@@ -782,13 +797,20 @@ Dem imellom, 8 minutter. Først tre om Salmon, så tre om Dataverket.
 
 ## Om Dataverket, 1
 
-<!-- Linus spør, Jan Ivar svarer. Forslag fra notatet: når Kari kommer inn via kubelogin, hvem er «brukeren» i Sentral, Zitadel-sub eller STS-sub? Og hva om samme menneske kommer fra en annen utsteder i morgen? -->
+Hvis Identitet får Keycloak ved siden av Zitadel, hvem er brukeren i Sentral?
+
+<!--
+Linus spør, Jan Ivar svarer. Fra notatet: når Kari kommer inn via kubelogin, er «brukeren» i Sentral Zitadel-sub eller STS-sub? Og hva om samme menneske kommer fra en annen utsteder i morgen?
+Stikkord: callouten stoler på én utsteder, STS-en. Bak den kan Identitet ha flere backends, Zitadel og Keycloak, men sub i Sentral må være Identitets egen og stabil, ikke backendens. Det er samme grunn som at Salmon utsteder egen sub for workloads. Keycloak som andre backend gir et valg for dem som alt kjører det, og den har act i preview.
+-->
 
 ---
 
 <!-- _class: sporsmal -->
 
 ## Om Dataverket, 2
+
+Hvorfor ikke bare OpenBao?
 
 <!--
 Linus spør, Jan Ivar svarer: hvorfor ikke bare OpenBao?
@@ -806,7 +828,17 @@ Hver tjeneste ville sett controlleren, ikke Kari. OpenBao er bygget rundt sitt e
 
 ## Om Dataverket, 3
 
-<!-- Linus spør, Jan Ivar svarer. -->
+Keycloak 26.8 kan sette act. Trenger dere fortsatt en egen STS?
+
+<!--
+Linus spør, Jan Ivar svarer.
+Stikkord: kanskje ikke for alltid, og det er bra. I dag passer det ikke med modellen på løsningsslidet:
+- Controlleren ser aldri Karis token. I Keycloak må agenten ha brukerens token som subject_token.
+- Granten gis én gang og lever til Kari sletter den. I Keycloak kommer may_act i brukerens token bare ved innlogging med scopet, en administrator bestemmer hvem som får delegeres til, og delegerte tokens har ikke refresh.
+- SA-tokens fra flere clustere må inn som bevis. Keycloak tar dem som klientautentisering, men vekslingen godtar bare Keycloaks egne tokens.
+- Preview, av som standard, ikke for produksjon.
+Hvis Keycloak får varige grants, kan STS-en bli tynnere eller forsvinne. Ønskelisten er nettopp dette.
+-->
 
 ---
 
