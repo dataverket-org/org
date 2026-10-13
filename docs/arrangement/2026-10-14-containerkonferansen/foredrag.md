@@ -21,7 +21,7 @@ Skjelett. Tidsbudsjett, 45 minutter:
   0–5    Innledning, begge
   5–22   Kontrollplanet, Jan Ivar
   22–34  Salmon, Linus
-  34–36  Ønskelisten, begge
+  34–36  Ønskelista, begge
   36–44  Spørsmål dem imellom: to fra Jan Ivar til Linus, to fra Linus til Jan Ivar, til slutt hva Dataverket er
   44–45  Publikum, eller avslutt
 Skilleark har class skille, Q&A-bildene class sporsmal.
@@ -151,7 +151,7 @@ Når maskinen bare gjør det koden sier, kan vi finne mennesket i etterkant, i k
 ## Ett problem, to halvdeler
 
 <!--
-Dette er disposisjonen. Første halvdel har Dataverket svar på, og Jan Ivar viser hvordan: organisasjon blir konto, token blir tilkobling, konvolutten avgjør. Andre halvdel er hullet. Jan Ivar viser hvor det er, Linus viser det han har bygget for å fylle det. Til slutt ønskelisten.
+Dette er disposisjonen. Første halvdel har Dataverket svar på, og Jan Ivar viser hvordan: organisasjon blir konto, token blir tilkobling, konvolutten avgjør. Andre halvdel er hullet. Jan Ivar viser hvor det er, Linus viser det han har bygget for å fylle det. Til slutt ønskelista.
 -->
 
 **Hvilken prosess på hvilken maskin er dette?**
@@ -719,7 +719,7 @@ Det som finnes: bytte av et JWT-bevis mot et token, team og workloads, kortlevde
 - Mennesket bak maskinen (RFC 8693 act): et menneske som delegerer til en workload, slik at sporbarheten følger med.
 - Flere typer bevis: i dag JWT. SPIFFE og sertifikater krever mer.
 - Rammeverk for klienter: skissen på forrige slide. Ingen kode ennå.
-Dette er også ønskelisten: det vi ikke bygger alene.
+Dette er også ønskelista: det vi ikke bygger alene.
 -->
 
 - Utlån av roller mellom team
@@ -730,19 +730,13 @@ Dette er også ønskelisten: det vi ikke bygger alene.
 
 ---
 
-<!-- _class: skille -->
+## Ønskelista
 
-## Ønskelisten
+Kan vi i det norske åpen kildekode-fellesskapet:
 
-Begge, 2 minutter
-
----
-
-## Til det norske åpen kildekode-fellesskapet
-
-- Modne delegeringsprofiler i identitetsplattformene
-- Standardisert identitet for meldinger
-- Gjenbrukbare byggeklosser i et kontrollplan
+- få modne delegeringsprofiler inn i identitetsplattformene?
+- bli enige om en standard identitet for meldinger?
+- dele gjenbrukbare byggeklosser for et kontrollplan?
 
 ---
 
@@ -754,7 +748,7 @@ Begge, 2 minutter
 
 <!-- _class: sporsmal -->
 
-## Hva er det minste et token må si, og hva skal mottakeren avgjøre selv?
+## Hva må stå i tokenet, og hva bør tjenesten som tar imot det, bestemme selv?
 
 <!--
 Jan Ivar spør, Linus svarer.
@@ -782,7 +776,7 @@ Stikkord: i dag må subject_token peke på en Workload med en credential-rad. Et
 Linus spør, Jan Ivar svarer. Linus kan legge til hvorfor Salmon. Sjekket mot kildekoden, oktober 2026.
 - OpenBao 2.7 løser første halvdel: JWT-innlogging mot clusterets discovery og JWKS, CEL-roller, streng aud-sjekk. Kunne erstattet nøkkelen i Secret i dag. Men ingen token exchange og ingen act: token-endepunktet tar bare authorization_code og client_credentials, og i identity tokens er sub alltid den som kaller. To steg via et eget Bao-token, én utsteder per mount. Hver tjeneste, Sentral, RadosGW STS, Incus, OpenStack, ville sett controlleren, ikke Kari.
 - Keycloak 26.8 har delegering i preview, sub=bruker, act=agent, og tar SA-tokenet som klientinnlogging. Men vekslingen godtar bare Keycloaks egne tokens, agenten må holde brukerens token, may_act kommer bare ved innlogging med scopet, og en administrator, ikke brukeren, bestemmer hvem som får delegeres til. Ingen refresh. Jobben som går hver natt i et år passer ikke.
-- Det vi trenger: en grant Kari selv gir én gang og sletter når hun vil, og en controller som aldri ser tokenet hennes. Får Keycloak varige, selvbetjente grants, kan STS-en bli tynnere. Det er ønskelisten.
+- Det vi trenger: en grant Kari selv gir én gang og sletter når hun vil, og en controller som aldri ser tokenet hennes. Får Keycloak varige, selvbetjente grants, kan STS-en bli tynnere. Det er ønskelista.
 - Salmon: tillit til en workload er én rad, utsteder per rad, RFC 8693 i ett kall, team og selvbetjening. Ærlig: aud sjekkes ikke ennå.
 -->
 
@@ -790,7 +784,7 @@ Linus spør, Jan Ivar svarer. Linus kan legge til hvorfor Salmon. Sjekket mot ki
 
 <!-- _class: sporsmal -->
 
-## Hvis Identitet får flere backends, hvem er brukeren i Sentral?
+## Hvis identitet i Dataverket får flere backends, hvem er brukeren i Sentral?
 
 <!--
 Linus spør, Jan Ivar svarer. Fra notatet: når Kari kommer inn via kubelogin, er brukeren Zitadel-sub eller STS-sub? Og hva om hun kommer fra en annen utsteder i morgen?
