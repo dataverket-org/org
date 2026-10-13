@@ -742,6 +742,14 @@ Dette er også ønskelista: det vi ikke bygger alene.
 
 ---
 
+## Ett problem, to svar
+
+**Hvilken prosess på hvilken maskin er dette?** En konto i Sentral som speiler organisasjonen, et token som utløper, en konvolutt som avgjør. Ingen hemmeligheter å rotere. Et moderne kontrollplan som åpen kildekode kan gjøre Norge mer konkurransedyktig!
+
+**Hvem kjører hva på den?** `sub` er mennesket som har ansvaret, `act` er prosessen som jobber på vegne av det, utstedt av en STS på en grant mennesket selv ga, slik workload identity gjør det hos skyleverandørene. STS-en finnes ikke ferdig i dag, men vi har presentert byggeklossene for en standardbasert løsning.
+
+---
+
 ## Ønskelista
 
 Kan vi i det norske åpen kildekode-fellesskapet:
@@ -821,12 +829,14 @@ Svaret i én setning: et åpen kildekode-kontrollplan for suveren skyinfrastrukt
 
 ---
 
-## Ett problem, to svar
+![bg right:40% 70%](content/signal-qr.svg)
 
-**Hvilken prosess på hvilken maskin er dette?** En konto i Sentral som speiler organisasjonen, et token som utløper, en konvolutt som avgjør. Ingen hemmeligheter å rotere. Et moderne kontrollplan som åpen kildekode kan gjøre Norge mer konkurransedyktig!
+## Bli med i Dataverket
 
-**Hvem kjører hva på den?** `sub` er mennesket som har ansvaret, `act` er prosessen som jobber på vegne av det, utstedt av en STS på en grant mennesket selv ga, slik workload identity gjør det hos skyleverandørene. STS-en finnes ikke ferdig i dag, men vi har presentert byggeklossene for en standardbasert løsning.
+- Bli medlem: <medlem@dataverket.org>
+- Koden: <https://git.dataverket.org>
+- Signal-gruppa: <https://signal.dataverket.org>
 
-Bli med i Dataverket: <medlem@dataverket.org>
-
-<!-- Publikum tar over herfra, eller vi avslutter. -->
+<!--
+Står mens salen spør. QR-koden går til Signal-gruppa.
+-->
