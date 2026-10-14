@@ -837,6 +837,7 @@ Svaret i én setning: et åpen kildekode-kontrollplan for suveren skyinfrastrukt
 
 ## Bli med i Dataverket
 
+- Les mer: <https://www.dataverket.org>
 - Send oss en melding: <hallo@dataverket.org>
 - Koden: <https://git.dataverket.org>
 - Signal-gruppa: signal dataverket dot org →
